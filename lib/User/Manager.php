@@ -21,6 +21,8 @@
  * You should have received a copy of the GNU Affero General Public License, version 3,
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *
+ * Modified by BW-Tech GmbH for owncloud.online (PHP 8.4).
+ *
  */
 
 namespace OCA\User_LDAP\User;
@@ -173,7 +175,7 @@ class Manager {
 			$attributes[$ldapConfig->ldapUserName] = true;
 		}
 		$homeRule = $ldapConfig->homeFolderNamingRule;
-		if (\strpos($homeRule, 'attr:') === 0) {
+		if (\is_string($homeRule) && \strpos($homeRule, 'attr:') === 0) {
 			$attributes[\substr($homeRule, \strlen('attr:'))] = true;
 		}
 		$searchAttributes = $ldapConfig->ldapAttributesForUserSearch;

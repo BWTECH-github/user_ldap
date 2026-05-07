@@ -25,6 +25,8 @@
  * You should have received a copy of the GNU Affero General Public License, version 3,
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *
+ * Modified by BW-Tech GmbH for owncloud.online (PHP 8.4).
+ *
  */
 
 namespace OCA\User_LDAP;
@@ -497,7 +499,7 @@ class Connection extends LDAPUtility {
 			$configurationOK = false;
 		}
 
-		if (\mb_strpos($this->configuration->ldapLoginFilter, '%uid', 0, 'UTF-8')
+		if (\mb_strpos((string)$this->configuration->ldapLoginFilter, '%uid', 0, 'UTF-8')
 		   === false) {
 			Util::writeLog(
 				'user_ldap',
@@ -584,7 +586,7 @@ class Connection extends LDAPUtility {
 			try {
 				// skip contacting main server after failed connection attempt
 				// until cache TTL is reached
-				if (\trim($this->configuration->ldapBackupHost) === ""
+				if (\trim((string)$this->configuration->ldapBackupHost) === ""
 					|| (!$this->configuration->ldapOverrideMainServer
 					&& !$this->getFromCache('overrideMainServer'))
 				) {
@@ -608,12 +610,12 @@ class Connection extends LDAPUtility {
 					throw new BindFailedException();
 				}
 			} catch (ServerNotAvailableException|BindFailedException $e) {
-				if (\trim($this->configuration->ldapBackupHost) === "") {
+				if (\trim((string)$this->configuration->ldapBackupHost) === "") {
 					throw $e;
 				}
 			}
 
-			if (\trim($this->configuration->ldapBackupHost) === "") {
+			if (\trim((string)$this->configuration->ldapBackupHost) === "") {
 				$this->ldapConnectionRes = null;
 				return false;
 			}

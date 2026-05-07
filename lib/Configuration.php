@@ -25,6 +25,8 @@
  * You should have received a copy of the GNU Affero General Public License, version 3,
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *
+ * Modified by BW-Tech GmbH for owncloud.online (PHP 8.4).
+ *
  */
 
 namespace OCA\User_LDAP;
@@ -432,7 +434,7 @@ class Configuration {
 	 * @return string
 	 */
 	protected function getPwd($varName) {
-		return \base64_decode($this->getValue($varName));
+		return \base64_decode((string)$this->getValue($varName));
 	}
 
 	/**
@@ -440,7 +442,7 @@ class Configuration {
 	 * @return string
 	 */
 	protected function getLcValue($varName) {
-		return \mb_strtolower($this->getValue($varName), 'UTF-8');
+		return \mb_strtolower((string)$this->getValue($varName), 'UTF-8');
 	}
 
 	/**

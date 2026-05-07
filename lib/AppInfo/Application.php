@@ -17,6 +17,8 @@
  * You should have received a copy of the GNU Affero General Public License, version 3,
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *
+ * Modified by BW-Tech GmbH for owncloud.online (PHP 8.4).
+ *
  */
 
 namespace OCA\User_LDAP\AppInfo;
@@ -82,7 +84,7 @@ class Application extends \OCP\AppFramework\App {
 			$userBackend  = new User_Proxy($configPrefixes, $ldapWrapper, $ocConfig);
 			$groupBackend  = new Group_Proxy($configPrefixes, $ldapWrapper);
 			// register user backend
-			\OC_User::useBackend($userBackend);
+			$server->getUserManager()->registerBackend($userBackend);
 			$server->getGroupManager()->addBackend($groupBackend);
 		}
 	}

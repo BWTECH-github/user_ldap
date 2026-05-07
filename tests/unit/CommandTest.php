@@ -17,6 +17,8 @@
  * You should have received a copy of the GNU Affero General Public License, version 3,
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *
+ * Modified by BW-Tech GmbH for owncloud.online (PHP 8.4).
+ *
  */
 
 namespace OCA\User_LDAP;
@@ -32,6 +34,8 @@ use Test\TestCase;
 class CommandTest extends TestCase {
 	/** @var CommandTester */
 	private $commandTester;
+	/** @var Helper|\PHPUnit\Framework\MockObject\MockObject */
+	private $helper;
 	
 	/**
 	 *
