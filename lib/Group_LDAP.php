@@ -32,6 +32,8 @@
  * You should have received a copy of the GNU Affero General Public License, version 3,
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *
+ * Modified by BW-Tech GmbH for owncloud.online (PHP 8.4).
+ *
  */
 
 namespace OCA\User_LDAP;
@@ -177,7 +179,7 @@ class Group_LDAP implements \OCP\GroupInterface {
 	 * that match the search url otherwise returns an empty array.
 	 */
 	public function getDynamicGroupMembers($dnGroup) {
-		$dynamicGroupMemberURL = \strtolower($this->access->getConnection()->ldapDynamicGroupMemberURL);
+		$dynamicGroupMemberURL = \strtolower((string)$this->access->getConnection()->ldapDynamicGroupMemberURL);
 
 		if (empty($dynamicGroupMemberURL)) {
 			return [];
@@ -486,7 +488,7 @@ class Group_LDAP implements \OCP\GroupInterface {
 		$groups = [];
 		$primaryGroup = $this->getUserPrimaryGroup($userDN);
 
-		$dynamicGroupMemberURL = \strtolower($this->access->getConnection()->ldapDynamicGroupMemberURL);
+		$dynamicGroupMemberURL = \strtolower((string)$this->access->getConnection()->ldapDynamicGroupMemberURL);
 
 		if (!empty($dynamicGroupMemberURL)) {
 			// look through dynamic groups to add them to the result array if needed

@@ -19,6 +19,8 @@
  * You should have received a copy of the GNU Affero General Public License, version 3,
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *
+ * Modified by BW-Tech GmbH for owncloud.online (PHP 8.4).
+ *
  */
 
 namespace OCA\User_LDAP;
@@ -40,6 +42,6 @@ class FilesystemHelper {
 	 * @param string $uid the ownCloud username of the user
 	 */
 	public function setup($uid) {
-		\OC_Util::setupFS($uid);
+		\OC::$server->getUserFolder($uid);
 	}
 }

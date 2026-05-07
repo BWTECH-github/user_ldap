@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<!-- Modified by BW-Tech GmbH for owncloud.online (PHP 8.4). -->
 <info>
 	<id>user_ldap</id>
 	<name>LDAP Integration</name>
@@ -11,9 +12,10 @@ This application enables administrators to connect ownCloud to an LDAP-based use
 A user logs into ownCloud with their LDAP/AD credentials, and is granted access based on an authentication request handled by the LDAP/AD server. ownCloud does not store LDAP/AD passwords, rather these credentials are used to authenticate a user. ownCloud then uses a session for the user ID. 
 More information is available in the [LDAP User and Group Backend documentation](https://doc.owncloud.com/server/latest/admin_manual/configuration/user/user_auth_ldap.html).
 
+This is a PHP 8.4 fork maintained by BW-Tech GmbH for owncloud.online.
 	</description>
 	<licence>AGPL</licence>
-	<author>Jörn Friedrich Dreyer, Tom Needham, Juan Pablo Villafañez Ramos, Dominik Schmidt and Arthur Schiwon</author>
+	<author>Jörn Friedrich Dreyer, Tom Needham, Juan Pablo Villafañez Ramos, Dominik Schmidt and Arthur Schiwon, modified by BW-Tech GmbH</author>
 	<version>0.20.0</version>
 	<types>
 		<authentication/>
@@ -26,7 +28,7 @@ More information is available in the [LDAP User and Group Backend documentation]
 	<dependencies>
 		<lib>ldap</lib>
 		<owncloud min-version="11" max-version="11" />
-		<php min-version="8.3" />
+		<php min-version="8.4" />
 	</dependencies>
 
 	<namespace>User_LDAP</namespace>

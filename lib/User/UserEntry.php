@@ -17,6 +17,8 @@
  * You should have received a copy of the GNU Affero General Public License, version 3,
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *
+ * Modified by BW-Tech GmbH for owncloud.online (PHP 8.4).
+ *
  */
 
 namespace OCA\User_LDAP\User;
@@ -247,7 +249,7 @@ class UserEntry {
 	}
 
 	private function verifyQuotaValue($quotaValue) {
-		return $quotaValue === 'none' || $quotaValue === 'default' || \OC_Helper::computerFileSize($quotaValue) !== false;
+		return $quotaValue === 'none' || $quotaValue === 'default' || \OCP\Util::computerFileSize($quotaValue) !== false;
 	}
 
 	/**
@@ -348,7 +350,7 @@ class UserEntry {
 	 * @return string
 	 */
 	private function getAttributeName($configOption, $default = '') {
-		$attributeName = \strtolower(\trim($this->connection->$configOption));
+		$attributeName = \strtolower(\trim((string)$this->connection->$configOption));
 
 		// strtolower() returns '' for null and false, which is what the connection initializes config options to
 		if ($attributeName === '') {
