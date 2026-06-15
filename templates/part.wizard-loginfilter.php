@@ -23,7 +23,7 @@
 			<select id="ldap_loginfilter_attributes" multiple="multiple" name="ldap_loginfilter_attributes" class="multiSelectPlugin"></select>
 		</div>
 		<div class="tablerow">
-			<label><a id='toggleRawLoginFilter' class='ldapToggle'>↓ <?php p($l->t('Edit LDAP Query'));?></a></label>
+			<label><button type="button" id='toggleRawLoginFilter' class='ldapToggle'>↓ <?php p($l->t('Edit LDAP Query'));?></button></label>
 		</div>
 		<div id="ldapReadOnlyLoginFilterContainer" class="hidden ldapReadOnlyFilterContainer tablerow">
 			<label><?php p($l->t('LDAP Filter:'));?></label>
@@ -40,7 +40,7 @@
 			<div class="ldapWizardInfo invisible">&nbsp;</div>
 		</div>
 		<div class="tablerow ldap_verify">
-			<label><?php p($l->t('Test Loginname'));?></label>
+			<label for="ldap_test_loginname"><?php p($l->t('Test Loginname'));?></label>
 			<input type="text" id="ldap_test_loginname" name="ldap_test_loginname" class="ldapVerifyInput" />
 			
 			<div class="hint">

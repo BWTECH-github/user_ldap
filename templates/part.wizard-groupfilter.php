@@ -36,7 +36,7 @@
 					title="<?php p($l->t('Selected groups'));?>"></select>
 		</p>
 		<p>
-			<label><a id='toggleRawGroupFilter' class='ldapToggle'>↓ <?php p($l->t('Edit LDAP Query'));?></a></label>
+			<label><button type="button" id='toggleRawGroupFilter' class='ldapToggle'>↓ <?php p($l->t('Edit LDAP Query'));?></button></label>
 		</p>
 		<p id="ldapReadOnlyGroupFilterContainer" class="hidden ldapReadOnlyFilterContainer">
 			<label><?php p($l->t('LDAP Filter:'));?></label>

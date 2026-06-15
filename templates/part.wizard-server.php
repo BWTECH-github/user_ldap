@@ -46,12 +46,12 @@
 		<div class="tablerow">
 			<div class="inline">
 				<div>
-					<label><?php p($l->t('Host')); ?></label>
+					<label for="ldap_host"><?php p($l->t('Host')); ?></label>
 					<input type="text" class="host" id="ldap_host" name="ldap_host" />
 				</div>
 
 				<div>
-					<label><?php p($l->t('Port')); ?></label>
+					<label for="ldap_port"><?php p($l->t('Port')); ?></label>
 					<input type="number" id="ldap_port" name="ldap_port" />
 				</div>
 			</div>
@@ -69,7 +69,7 @@
 		</div>
 
 		<div class="tablerow">
-			<label><?php p($l->t('User DN')); ?></label>
+			<label for="ldap_dn"><?php p($l->t('User DN')); ?></label>
 			<input type="text" id="ldap_dn" name="ldap_dn" class="tablecell" autocomplete="off" />
 			<div class="hint">
 				<?php p($l->t('The DN of the client user with which the bind shall be done, e.g. uid=agent,dc=example,dc=com. For anonymous access, leave DN and Password empty.')); ?>
@@ -77,7 +77,7 @@
 		</div>
 
 		<div class="tablerow">
-			<label><?php p($l->t('Password')); ?></label>
+			<label for="ldap_agent_password"><?php p($l->t('Password')); ?></label>
 			<input type="password" id="ldap_agent_password" class="tablecell" name="ldap_agent_password" autocomplete="off" />
 			<div class="hint">
 				<?php p($l->t('For anonymous access, leave DN and Password empty.')); ?>
@@ -85,7 +85,7 @@
 		</div>
 
 		<div class="tablerow">
-			<label><?php p($l->t('One Base DN per line')); ?></label>
+			<label for="ldap_base"><?php p($l->t('One Base DN per line')); ?></label>
 			<textarea id="ldap_base" name="ldap_base" class="tablecell" placeholder="" >
 			</textarea>
 			<div class="hint">
