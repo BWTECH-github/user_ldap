@@ -24,7 +24,7 @@
 		<div class="tablerow ldapManyGroupsSupport hidden">
 			<div>
 				<label><?php p($l->t('Available groups'));?></label>
-				<select class="ldapGroupList ldapGroupListAvailable" multiple="multiple"></select>
+				<select class="ldapGroupList ldapGroupListAvailable" multiple="multiple" aria-label="<?php p($l->t('Available groups'));?>"></select>
 			</div>
 
 			<div class="selectbuttonwrap">
@@ -35,13 +35,13 @@
 
 			<div>
 				<label><?php p($l->t('Selected groups'));?></label>
-				<select class="ldapGroupList ldapGroupListSelected" multiple="multiple"></select>	
+				<select class="ldapGroupList ldapGroupListSelected" multiple="multiple" aria-label="<?php p($l->t('Selected groups'));?>"></select>
 			</div>
 			
 		</div>
 
 		<div class="tablerow">
-			<label><a id='toggleRawUserFilter' class='ldapToggle'>↓ <?php p($l->t('Edit LDAP Query'));?></a></label>
+			<label><button type="button" id='toggleRawUserFilter' class='ldapToggle'>↓ <?php p($l->t('Edit LDAP Query'));?></button></label>
 		</div>
 
 		<div id="ldapReadOnlyUserFilterContainer" class="tablerow hidden ldapReadOnlyFilterContainer">

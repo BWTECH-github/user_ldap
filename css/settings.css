@@ -155,7 +155,7 @@
 
 .ldapwarning {
 	margin-left: 22px;
-	color: #FF3B3B;
+	color: #D70000;
 }
 
 .ldapSpinner {
@@ -262,6 +262,28 @@ input.ldapVerifyInput {
 	text-decoration: underline;
 }
 
+/* Toggle als nativer Button: Link-Optik beibehalten, aber fokussierbar/tastaturbedienbar */
+#ldap button.ldapToggle,
+button.ldapToggle {
+	display: inline;
+	width: auto;
+	height: auto;
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: none;
+	box-shadow: none;
+	font: inherit;
+	color: inherit;
+	cursor: pointer;
+}
+
+#ldap button.ldapToggle:focus-visible,
+button.ldapToggle:focus-visible {
+	outline: 2px solid var(--color-primary-element, #0a5dc2);
+	outline-offset: 2px;
+}
+
 span.ldapInputColElement {
 	margin-top: 9px;
 }
@@ -296,7 +318,7 @@ select[multiple=multiple] + button {
 	vertical-align: text-bottom;
 }
 .ldap_config_state_indicator_sign.success {
-	background: #37ce02;
+	background: #2B9300;
 	border-radius: 8px;
 }
 .ldap_config_state_indicator_sign.error {
@@ -381,7 +403,7 @@ select[multiple=multiple] + button {
 
 #ldap .ui-tabs .ui-tabs-nav li.ldap_saving_wrapper .ldap_saving {
 	margin-right: 15px;
-	color: orange;
+	color: #B35900;
 	font-weight: bold;
 }
 
