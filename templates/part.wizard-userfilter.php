@@ -28,9 +28,8 @@
 			</div>
 
 			<div class="selectbuttonwrap">
-				<label>&nbsp;</label>
-				<button class="ldapGroupListSelect" type="button">&gt;</button>
-				<button class="ldapGroupListDeselect" type="button">&lt;</button>
+				<button class="ldapGroupListSelect" type="button" aria-label="<?php p($l->t('Select group(s)'));?>">&gt;</button>
+				<button class="ldapGroupListDeselect" type="button" aria-label="<?php p($l->t('Deselect group(s)'));?>">&lt;</button>
 			</div>
 
 			<div>
