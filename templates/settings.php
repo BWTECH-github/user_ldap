@@ -65,7 +65,7 @@ style('user_ldap', 'settings');
 				<li class="stateIndicator"><span class="ldap_config_state_indicator"></span> <span class="ldap_config_state_indicator_sign"></span><div class="ldap_config_state_indicator_subline"></div></li>
 				<li>
 					<a href="<?php p(link_to_docs('admin-ldap')); ?>" target="_blank" rel="noreferrer">
-						<img src="<?php print_unescaped(image_path('', 'actions/info.svg')); ?>" style="height:1.75ex" />
+						<img src="<?php print_unescaped(image_path('', 'actions/info.svg')); ?>" alt="" style="height:1.75ex" />
 						<span class="ldap_grey"><?php p($l->t('Help')); ?></span>
 					</a>
 				</li>
@@ -164,7 +164,6 @@ if (!\function_exists('ldap_connect')) {
 							</div>
 						</div>
 						<div class="tablerow">
-							<label></label>
 							<small><?php p($l->t('Each attribute value is truncated to 191 characters')); ?></small>
 						</div>
 						<div class="tablerow">
@@ -330,5 +329,5 @@ if (!\function_exists('ldap_connect')) {
 		</fieldset>
 	</div>
 	<!-- Spinner Template -->
-	<img class="ldapSpinner hidden" src="<?php p(image_path('core', 'loading.gif')); ?>">
+	<img class="ldapSpinner hidden" src="<?php p(image_path('core', 'loading.gif')); ?>" alt="" aria-hidden="true">
 </form>
