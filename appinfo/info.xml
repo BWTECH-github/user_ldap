@@ -16,7 +16,7 @@ This is a PHP 8.4 fork maintained by BW-Tech GmbH for owncloud.online.
 	</description>
 	<licence>AGPL</licence>
 	<author>Jörn Friedrich Dreyer, Tom Needham, Juan Pablo Villafañez Ramos, Dominik Schmidt and Arthur Schiwon, modified by BW-Tech GmbH</author>
-	<version>0.20.0</version>
+	<version>0.20.1</version>
 	<types>
 		<authentication/>
 	</types>
