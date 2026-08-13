@@ -68,7 +68,7 @@ OC.L10N.register(
     "LDAP / AD Username:" : "LDAP / AD Kullanıcı Adı:",
     "Allows login against the LDAP / AD username, which is either uid or samaccountname and will be detected." : "LDAP / AD kullanıcı adı ile oturum açmaya izin verir.",
     "LDAP / AD Email Address:" : "LDAP / AD Eposta Adresi:",
-    "Allows login against an email attribute. Mail and mailPrimaryAddress will be allowed. WARNING: Disabling login with email might require enabling strict login checking to be effective, please refer to ownCloud documentation for more details!" : "Bir e-posta özniteliğine karşı oturum açmaya izin verir. Mail ve mailPrimaryAddress'e izin verilecek. UYARI: E-posta ile oturum açmanın devre dışı bırakılması, etkin oturum açma denetiminin etkinleştirilmesini gerektirebilir, daha fazla ayrıntı için lütfen ownCloud belgelerine bakın!",
+    "Allows login against an email attribute. Mail and mailPrimaryAddress will be allowed. WARNING: Disabling login with email might require enabling strict login checking to be effective, please refer to the owncloud.online documentation for more details!" : "Bir e-posta özniteliğine karşı oturum açmaya izin verir. Mail ve mailPrimaryAddress'e izin verilecek. UYARI: E-posta ile oturum açmanın devre dışı bırakılması, etkin oturum açma denetiminin etkinleştirilmesini gerektirebilir, daha fazla ayrıntı için lütfen owncloud.online belgelerine bakın!",
     "Other Attributes:" : "Diğer Nitelikler:",
     "Defines the filter to apply, when login is attempted. %%uid replaces the username in the login action. Example: \"uid=%%uid\"" : "Oturum açma girişimi olduğunda uygulanacak filtreyi tanımlar. %%uid, oturum işleminde kullanıcı adı ile değiştirilir. Örneğin: \"uid=%%uid\"",
     "Test Loginname" : "Oturum açma adını sına",
