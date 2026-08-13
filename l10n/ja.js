@@ -68,7 +68,7 @@ OC.L10N.register(
     "LDAP / AD Username:" : "LDAP/ADユーザー名:",
     "Allows login against the LDAP / AD username, which is either uid or samaccountname and will be detected." : "LDAP / AD ユーザー名に対してログインが許可されています。uid か、samaccountname のどちらかが検出されました。",
     "LDAP / AD Email Address:" : "LDAP / AD メールアドレス:",
-    "Allows login against an email attribute. Mail and mailPrimaryAddress will be allowed. WARNING: Disabling login with email might require enabling strict login checking to be effective, please refer to ownCloud documentation for more details!" : "メール属性に対するログインを許可します。メールとプライマリメール属性が許可されます。警告：メールでログインを無効にするには、厳密なログインチェックを有効にする必要があるかもしれません、詳細はownCloudのドキュメントを参照してください！",
+    "Allows login against an email attribute. Mail and mailPrimaryAddress will be allowed. WARNING: Disabling login with email might require enabling strict login checking to be effective, please refer to the owncloud.online documentation for more details!" : "メール属性に対するログインを許可します。メールとプライマリメール属性が許可されます。警告：メールでログインを無効にするには、厳密なログインチェックを有効にする必要があるかもしれません、詳細はowncloud.onlineのドキュメントを参照してください！",
     "Other Attributes:" : "その他の属性:",
     "Defines the filter to apply, when login is attempted. %%uid replaces the username in the login action. Example: \"uid=%%uid\"" : "ログイン実行時に適用するフィルターを定義します。%%uid にはログイン操作におけるユーザー名が入ります。例： \"uid=%%uid\"",
     "Test Loginname" : "テスト用ログイン名",
