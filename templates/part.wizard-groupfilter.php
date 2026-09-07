@@ -17,7 +17,7 @@
 				<?php p($l->t('Only from these groups:'));?>
 			</label>
 
-			<input type="text" class="ldapManyGroupsSupport ldapManyGroupsSearch hidden" placeholder="<?php p($l->t('Search groups'));?>" />
+			<input type="text" class="ldapManyGroupsSupport ldapManyGroupsSearch hidden" placeholder="<?php p($l->t('Search groups'));?>" aria-label="<?php p($l->t('Search groups'));?>" />
 
 			<select id="ldap_groupfilter_groups" multiple="multiple"
 			 name="ldap_groupfilter_groups" class="multiSelectPlugin">
@@ -26,12 +26,14 @@
 		</p>
 		<p class="ldapManyGroupsSupport hidden">
 			<select class="ldapGroupList ldapGroupListAvailable" multiple="multiple"
+					aria-label="<?php p($l->t('Available groups'));?>"
 					title="<?php p($l->t('Available groups'));?>"></select>
 			<span class="buttonSpan">
 				<button class="ldapGroupListSelect" type="button" aria-label="<?php p($l->t('Select group(s)'));?>">&gt;</button><br/>
 				<button class="ldapGroupListDeselect" type="button" aria-label="<?php p($l->t('Deselect group(s)'));?>">&lt;</button>
 			</span>
 			<select class="ldapGroupList ldapGroupListSelected" multiple="multiple"
+					aria-label="<?php p($l->t('Selected groups'));?>"
 					title="<?php p($l->t('Selected groups'));?>"></select>
 		</p>
 		<p>
@@ -42,7 +44,10 @@
 			<span class="ldapFilterReadOnlyElement ldapInputColElement"></span>
 		</p>
 		<p id="rawGroupFilterContainer" class="invisible">
-			<textarea type="text" id="ldap_group_filter" name="ldap_group_filter"
+			<!-- Dieses Register hat keine sichtbare Beschriftung für das Filterfeld;
+				 der Name kommt aus der vorhandenen Zeichenkette des Platzhalters. -->
+			<textarea id="ldap_group_filter" name="ldap_group_filter"
+					  aria-label="<?php p($l->t('Edit LDAP Query'));?>"
 					  placeholder="<?php p($l->t('Edit LDAP Query'));?>"
 					  title="<?php p($l->t('The filter specifies which LDAP groups shall have access to the %s instance.', $theme->getName()));?>">
 			</textarea>

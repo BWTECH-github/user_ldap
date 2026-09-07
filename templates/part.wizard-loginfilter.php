@@ -30,8 +30,8 @@
 			<div class="ldapFilterReadOnlyElement"></div>
 		</div>
 		<div id="rawLoginFilterContainer" class="tablerow invisible">
-			<label><?php p($l->t('Edit LDAP Query'));?></label>
-			<textarea type="text" id="ldap_login_filter" name="ldap_login_filter" class="ldapFilterInputElement"></textarea>
+			<label for="ldap_login_filter"><?php p($l->t('Edit LDAP Query'));?></label>
+			<textarea id="ldap_login_filter" name="ldap_login_filter" class="ldapFilterInputElement"></textarea>
 			<div class="hint">
 				<?php p($l->t('Defines the filter to apply, when login is attempted. %%uid replaces the username in the login action. Example: "uid=%%uid"'));?>
 			</div>

@@ -16,15 +16,15 @@
 				<?php p($l->t('Only from these groups:'));?>
 			</label>
 
-			<input type="text" class="ldapManyGroupsSupport ldapManyGroupsSearch hidden" placeholder="<?php p($l->t('Search groups'));?>" />
+			<input type="text" class="ldapManyGroupsSupport ldapManyGroupsSearch hidden" placeholder="<?php p($l->t('Search groups'));?>" aria-label="<?php p($l->t('Search groups'));?>" />
 
 			<select id="ldap_userfilter_groups" multiple="multiple" name="ldap_userfilter_groups" class="multiSelectPlugin"></select>
 		</div>
 
 		<div class="tablerow ldapManyGroupsSupport hidden">
 			<div>
-				<label><?php p($l->t('Available groups'));?></label>
-				<select class="ldapGroupList ldapGroupListAvailable" multiple="multiple" aria-label="<?php p($l->t('Available groups'));?>"></select>
+				<label for="ldap_userfilter_groups_available"><?php p($l->t('Available groups'));?></label>
+				<select id="ldap_userfilter_groups_available" class="ldapGroupList ldapGroupListAvailable" multiple="multiple"></select>
 			</div>
 
 			<div class="selectbuttonwrap">
@@ -33,8 +33,8 @@
 			</div>
 
 			<div>
-				<label><?php p($l->t('Selected groups'));?></label>
-				<select class="ldapGroupList ldapGroupListSelected" multiple="multiple" aria-label="<?php p($l->t('Selected groups'));?>"></select>
+				<label for="ldap_userfilter_groups_selected"><?php p($l->t('Selected groups'));?></label>
+				<select id="ldap_userfilter_groups_selected" class="ldapGroupList ldapGroupListSelected" multiple="multiple"></select>
 			</div>
 			
 		</div>
@@ -49,8 +49,8 @@
 		</div>
 
 		<div class="tablerow" id="rawUserFilterContainer">
-			<label><?php p($l->t('Edit LDAP Query'));?></label>
-			<textarea type="text" id="ldap_userlist_filter" name="ldap_userlist_filter" class="ldapFilterInputElement"></textarea>
+			<label for="ldap_userlist_filter"><?php p($l->t('Edit LDAP Query'));?></label>
+			<textarea id="ldap_userlist_filter" name="ldap_userlist_filter" class="ldapFilterInputElement"></textarea>
 			<div class="hint">
 				<?php p($l->t('The filter specifies which LDAP users shall have access to the %s instance.', $theme->getName()));?>
 			</div>

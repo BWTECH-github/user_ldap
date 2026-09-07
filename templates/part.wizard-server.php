@@ -1,15 +1,23 @@
 <div class="outoftheway">
 	<!-- Hack for Safari and Chromium/Chrome which ignore autocomplete="off" -->
-	<input type="text" id="fake_user" name="fake_user" autocomplete="off" />
+	<!-- Köderfelder gegen das automatische Ausfüllen: Sie haben für Menschen keine
+		 Bedeutung und werden deshalb nicht beschriftet, sondern mit aria-hidden aus
+		 dem Barrierefreiheitsbaum und mit tabindex="-1" aus der Tabreihenfolge
+		 genommen. Für den Browser sichtbar bleiben sie, sonst greift der Köder nicht. -->
+	<input type="text" id="fake_user" name="fake_user" autocomplete="off"
+				aria-hidden="true" tabindex="-1" />
 	<input type="password" id="fake_password" name="fake_password"
-				autocomplete="off" />
+				autocomplete="off" aria-hidden="true" tabindex="-1" />
 </div>
 <fieldset id="ldapWizard1">
 	<section>
 		<div class="tablerow">
 			<div class="inline">
 				<div>
-					<select id="ldap_serverconfig_chooser" name="ldap_serverconfig_chooser">
+					<!-- Das Auswahlfeld hat keine sichtbare Beschriftung; der Name kommt aus der
+						 bereits vorhandenen Zeichenkette der Registerkarte "Server". -->
+					<select id="ldap_serverconfig_chooser" name="ldap_serverconfig_chooser"
+						aria-label="<?php p($l->t('Server')); ?>">
 					<?php if (\count($_['serverConfigurationPrefixes']) === 0) {
 						?>
 						<option value="" selected><?php p($l->t('1. Server')); ?></option>');
@@ -29,15 +37,22 @@
 				</div>
 
 				<div>
+					<!-- Die drei Schaltflächen zeigen nur ein Symbol; ihr Name stammte bisher
+						 allein aus title. Der Tooltip des Kerns verschiebt title beim Start nach
+						 data-original-title und leert das Attribut, womit der Name verschwindet.
+						 aria-label hält denselben, bereits vorhandenen Text dauerhaft fest. -->
 					<button type="button" id="ldap_action_add_configuration"
 						name="ldap_action_add_configuration" class="icon-add icon-default-style"
+						aria-label="<?php p($l->t('Add a new and blank configuration')); ?>"
 						title="<?php p($l->t('Add a new and blank configuration')); ?>">&nbsp;</button>
 					<button type="button" id="ldap_action_copy_configuration"
 						name="ldap_action_copy_configuration"
 						class="ldapIconCopy icon-default-style"
+						aria-label="<?php p($l->t('Copy current configuration into new directory binding')); ?>"
 						title="<?php p($l->t('Copy current configuration into new directory binding')); ?>">&nbsp;</button>
 					<button type="button" id="ldap_action_delete_configuration"
 					name="ldap_action_delete_configuration" class="icon-delete icon-default-style"
+					aria-label="<?php p($l->t('Delete the current configuration')); ?>"
 					title="<?php p($l->t('Delete the current configuration')); ?>">&nbsp;</button>
 				</div>
 			</div>
