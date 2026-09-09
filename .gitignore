@@ -5,7 +5,7 @@
 /tests/output/
 
 # Composer
-/vendor/
+/vendor/*
 vendor-bin/**/vendor
 vendor-bin/**/composer.lock
 
@@ -22,3 +22,9 @@ vendor-bin/**/composer.lock
 
 # Generated from .drone.star
 .drone.yml
+
+# Das Widget des LDAP-Assistenten kommt NICHT mehr ueber bower: bower ist
+# eingestellt, und ohne das Buendel wirft die Einstellungsseite
+# "$element.multiselect is not a function" - der ganze Assistent ist dann
+# unbedienbar. Es liegt deshalb im Repo (MIT/GPL, ~19 KB).
+!/vendor/ui-multiselect/
