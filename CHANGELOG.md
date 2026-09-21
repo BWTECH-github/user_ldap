@@ -3,6 +3,52 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [0.20.6] - 2026-09-21
+
+Entspricht 0.20.4 auf `main`. Die Nummerierung dieses Zweiges liegt seit dem
+Zusammenfuehren in 0.20.5 hoeher, deshalb hier 0.20.6.
+
+### Security
+
+- **Das Heimatverzeichnis aus dem Verzeichnisdienst wurde ungeprueft
+  uebernommen.** `getHome()` hat den Wert der `homeFolderNamingRule` ohne
+  Normalisierung zurueckgegeben. Der Wert kommt aus dem LDAP-Verzeichnis, das
+  nicht zwangslaeufig unter der Kontrolle der ownCloud-Verwaltung steht: Zeigte
+  er auf das Code-Verzeichnis, wurde die Dateiansicht des Nutzers zu Lese- und
+  Schreibzugriff auf die PHP-Dateien der Anwendung. Der Pfad wird jetzt
+  normalisiert (Symlinks auf dem existierenden Anfangsstueck aufgeloest) und
+  muss im Datenverzeichnis liegen oder in einem Verzeichnis, das die Verwaltung
+  ueber die neue Einstellung `user_ldap.home_base_dirs` ausdruecklich erlaubt
+  hat. Andernfalls wird er abgewiesen und protokolliert. Uebernommen von
+  upstream (#849).
+
+- **`escapeFilterPart()` liess Platzhalter am Leben.** Die Ersetzungen liefen
+  nacheinander, wodurch die Funktion ihre eigenen Backslashes nachescapte: Aus
+  `*` wurde erst `\*` und dann `\\*` - ein escapter Backslash gefolgt von
+  einem **rohen** Sternchen. Ein Anmeldename konnte so einen Platzhalter in den
+  Suchfilter einschleusen, vor jeder Anmeldung erreichbar. Escapt wird jetzt in
+  einem Durchgang in der Hex-Form nach RFC 4515 Abschnitt 3; Steuerzeichen sind
+  damit gleich mit abgedeckt. Uebernommen von upstream (#846).
+
+- **Bind-DN und die drei freien Suchfilter wurden nicht von Steuerzeichen
+  befreit.** Nur `ldapAgentPassword` lief durch `FILTER_FLAG_STRIP_LOW`.
+  `ldapAgentName`, `ldapUserFilter`, `ldapLoginFilter` und `ldapGroupFilter`
+  gehen woertlich in die Bind-Anfrage bzw. in den Suchfilter und landen damit
+  auf der Leitung zu dem Dienst, der auf dem eingestellten Host und Port
+  lauscht. Uebernommen von upstream (#844).
+
+### Added
+
+- Neue Systemeinstellung `user_ldap.home_base_dirs` (Standard: leer): Liste
+  zusaetzlicher absoluter Verzeichnisse, in denen ein aus LDAP gelesenes
+  Heimatverzeichnis liegen darf. Das Datenverzeichnis gilt immer.
+
+### Changed
+
+- Die Testsammlung fuer `Access`, `Configuration` und `UserEntry` entspricht
+  jetzt der von upstream: 278 statt 223 Faelle. Gegen den alten Code fallen
+  davon 43.
+
 ## [0.20.3] - 2026-08-13
 
 ### Changed
