@@ -213,7 +213,7 @@ class UserEntry {
 	 * bytes), '1234 MB' (quota in MB - check the \OC_Helper::computerFileSize method for more info)
 	 *
 	 * @return string|false quota
-	 * TODO throw Exception for invalid values after https://github.com/owncloud/core/pull/28805 has been merged
+	 * TODO throw Exception for invalid values after Upstream-Kern #28805 has been merged
 	 */
 	public function getQuota() {
 		$quota = null;
@@ -326,7 +326,7 @@ class UserEntry {
 			);
 		}
 
-		// TODO use OutOfBoundsException and https://github.com/owncloud/core/pull/28805
+		// TODO use OutOfBoundsException and Upstream-Kern #28805
 		$enforce = $this->config->getAppValue('user_ldap', 'enforce_home_folder_naming_rule', true);
 		if ($attr !== ''
 			&& \filter_var($enforce, FILTER_VALIDATE_BOOLEAN)

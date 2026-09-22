@@ -1,6 +1,7 @@
-#ldap {
-	width: calc(100% - 40px);
-}
+/* Die Breite gibt die Karte der Einstellungsseite vor. calc(100% - 40px)
+   stammte aus dem alten Layout ohne Kartenrahmen; mit border-box zog es die
+   40 px ein zweites Mal ab – die LDAP-Karte endete sichtbar vor allen
+   anderen Karten der Seite. */
 
 @media all and (min-width: 1200px) {
 	#ldap section {
@@ -12,10 +13,10 @@
 	margin-bottom: 2rem;
 }
 
+/* Die Trennlinie unter den Abschnittsköpfen fluchtet mit dem Inhalt; der
+   frühere Vorlauf von -41 px zog sie bis an den Kartenrand. */
 #ldap section h3 {
-	border-bottom: 1px solid #efefef;
-	margin-left: -41px;
-	padding-left: 41px;
+	border-bottom: 1px solid var(--oco-border-inner, #efefef);
 	padding-bottom: 5px;
 }
 
@@ -34,7 +35,11 @@
 	display: inline-block;
 }
 
-#ldap .tablerow input, 
+/* Kästchen und Optionsfelder ausgenommen: als Block mit voller Breite und
+   Polster wurden sie zu verzerrten Kapseln (gemessen 15 × 24 px, die Zeichnung
+   11 × 20 px mit abgeschnittenem Haken). Sie behalten die 24 × 24 px des
+   Kerns. */
+#ldap .tablerow input:not([type="checkbox"]):not([type="radio"]),
 #ldap .tablerow textarea,
 #ldap .tablerow select,
 #ldap .tablerow button.ui-multiselect {
@@ -44,7 +49,7 @@
 	margin-bottom: .5rem;
 }
 
-#ldap .tablerow input, 
+#ldap .tablerow input:not([type="checkbox"]):not([type="radio"]),
 #ldap .tablerow textarea,
 #ldap .tablerow select {
 	height: auto;
@@ -71,7 +76,6 @@
 }
 
 #ldap .tablerow input[type="checkbox"] {
-	width: 15px !important;
 	float: left;
 }
 
@@ -101,8 +105,14 @@
 	height:1.75ex;
 }
 
+/* Die Nachbarn (icon-add, icon-delete) bekommen Größe und Lage ihres Symbols
+   vom Kern; ldapIconCopy ist keine icon-Klasse, das Symbol stand in voller
+   Größe über dem Rand des Knopfes. */
 .ldapIconCopy {
 	background-image: url('../img/copy.svg');
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: 16px 16px;
 }
 
 .invisible {
@@ -262,19 +272,26 @@ input.ldapVerifyInput {
 	text-decoration: underline;
 }
 
-/* Toggle als nativer Button: Link-Optik beibehalten, aber fokussierbar/tastaturbedienbar */
+/* Toggle als nativer Button: Link-Optik beibehalten, aber fokussierbar/tastaturbedienbar.
+   Drei Kennungen: die Knopfregel des Redesign-Kerns für den Inhalt der
+   Einstellungen trägt zwei Kennungen und sieben Klassen und machte den
+   Umschalter sonst zur umrandeten Pille. */
+#body-settings.oco-shell #app-content #ldap button.ldapToggle,
 #ldap button.ldapToggle,
 button.ldapToggle {
 	display: inline;
 	width: auto;
 	height: auto;
+	min-height: 0;
 	margin: 0;
 	padding: 0;
 	border: none;
+	border-radius: 0;
 	background: none;
 	box-shadow: none;
 	font: inherit;
-	color: inherit;
+	color: var(--oco-teal-ink, inherit);
+	text-decoration: underline;
 	cursor: pointer;
 }
 
@@ -288,11 +305,31 @@ span.ldapInputColElement {
 	margin-top: 9px;
 }
 
+/* Der Knopf der Mehrfachauswahl: feste 28 px Höhe und 40 % Breite ließen
+   „Objektklassen auswählen“ im Kernknopf (36 px) zweizeilig umbrechen und
+   unten abschneiden. Jetzt einzeilig und so breit wie nötig. */
 select[multiple=multiple] + button {
-	height: 28px !important;
-	padding-top: 6px !important;
 	min-width: 40%;
-	max-width: 40%;
+	max-width: 100%;
+	white-space: nowrap;
+}
+
+/* Das Pfeilsymbol steht als Block vor dem Text (jQuery UI .ui-icon) – der Knopf
+   wurde damit zweizeilig und 51 px hoch, der Text klebte oben. Als Flex-Zeile
+   steht der Pfeil rechts neben dem Text. !important gegen das display: inline,
+   das ui-multiselect als Inline-Stil setzt. */
+#ldap select[multiple=multiple] + button.ui-multiselect {
+	display: inline-flex !important;
+	flex-direction: row-reverse;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+/* Der Pfeil trägt aus dem Kern einen Außenabstand von 30 px nach unten – der
+   Knopf wurde dadurch 51 statt 36 px hoch. */
+#ldap select[multiple=multiple] + button.ui-multiselect .ui-icon {
+	margin: 0;
 }
 
 .save-cursor {
@@ -326,7 +363,7 @@ select[multiple=multiple] + button {
 }
 
 .ldap_grey {
-	/* #6e6e6e ergab auf der Assistentenflaeche 4,43:1 - knapp unter den
+	/* #6e6e6e ergab auf der Assistentenfläche 4,43:1 - knapp unter den
 	   4,5:1 aus WCAG 1.4.3. #5a5a5a liegt bei 6,5:1. */
 	color: #5a5a5a;
 }
@@ -349,7 +386,6 @@ select[multiple=multiple] + button {
 	top: 5.5em;
 	padding-top: 1.7em;
 	z-index: 1;
-	width: calc(100% - 40px);
 }
 
 @media all and (min-width: 768px) {
@@ -363,30 +399,62 @@ select[multiple=multiple] + button {
 	border: none;
 }
 
+/* Reiter in der Form der Redesign-Reiterleisten: kein grauer Kasten, keine
+   Unterstreichung wie ein Fließtextverweis (die kam vom Kern über jeden Anker
+   im Inhalt), der aktive Reiter mit Akzentlinie. Die Notform des Kerns für
+   den Fall ohne jQuery UI (#ldapSettings > .header > ul:not(.ui-tabs-nav))
+   sieht genauso aus. #body-settings vor den Verweisregeln: der Kern
+   unterstreicht jeden Verweis in einem Listeneintrag des Inhalts
+   (#body-settings.oco-shell #app-content li a, zwei Kennungen). */
+#ldap .ui-tabs .ui-tabs-nav {
+	padding: 0;
+	border: none;
+	border-bottom: 1px solid var(--oco-border-inner, #efefef);
+	border-radius: 0;
+	background: transparent;
+}
+
 #ldap .ui-tabs .ui-tabs-nav li {
-	background: #efefef;
+	margin: 0 var(--oco-space-1, 4px) -1px 0;
+	border: none;
+	border-bottom: 2px solid transparent;
+	border-radius: var(--oco-radius-nav, 9px) var(--oco-radius-nav, 9px) 0 0;
+	background: transparent;
 }
 
 #ldap .ui-tabs .ui-tabs-nav li.ui-state-active {
-	background: #fff;
+	border-bottom-color: var(--oco-teal-ink, #00806b);
+	background: transparent;
 }
 
-#ldap .ui-tabs .ui-tabs-nav li a {
-    padding: 0.7em 1.3em;
+#body-settings #ldap .ui-tabs .ui-tabs-nav li a {
+	padding: 0.7em 1em;
+	color: var(--oco-text-secondary, #5b6675);
+	font: 600 13px/1.25 var(--oco-font-ui, inherit);
+	text-decoration: none;
 }
 
-#ldap .ui-tabs .ui-tabs-nav li.warn a {
-	padding-left: 3em;
+#body-settings #ldap .ui-tabs .ui-tabs-nav li a:hover {
+	color: var(--oco-text-heading, #041e42);
+}
+
+#body-settings #ldap .ui-tabs .ui-tabs-nav li.ui-state-active a {
+	color: var(--oco-text-heading, #041e42);
+}
+
+/* Warnsymbol als Teil der Zeile statt absolut über den Text gelegt – mit dem
+   schmaleren Polster der Reiter lag es sonst auf dem ersten Buchstaben. */
+#body-settings #ldap .ui-tabs .ui-tabs-nav li.warn a {
+	display: inline-flex;
+	align-items: center;
+	gap: .4em;
 }
 
 #ldap .ui-tabs .ui-tabs-nav li.warn a::before {
 	content: url("../img/exclamation-triangle-solid.svg");
+	display: inline-block;
 	height: 16px;
 	width: 16px;
-	transform: translate(0, 2px);
-	margin-right: .5em;
-	position: absolute;
-	left: 1.3em;
 }
 
 #ldap .ui-tabs .ui-tabs-nav li.stateIndicator,
@@ -468,4 +536,41 @@ select[multiple=multiple] + button {
 
 #ldap p {
 	margin-bottom: 1em;
+}
+
+/* Beschriftung über dem Feld – in allen Reitern gleich. Die Kernregel für
+   Labels im Inhalt der Einstellungen (display: inline-flex, zwei Kennungen)
+   schlug die beiden Regeln oben und stellte „Nur diese Objektklassen:“ und
+   „Nur aus diesen Gruppen:“ neben die Auswahlknöpfe, versetzt um das
+   margin-top. Als Flex-Block steht die Beschriftung darüber; neben einem
+   links schwebenden Kästchen rückt sie als eigener Formatierungskontext
+   daneben, wie bisher. */
+#body-settings.oco-shell #ldap fieldset p > label,
+#body-settings.oco-shell #ldap .tablerow > label {
+	display: flex;
+}
+
+/* Zeilen mit Kästchen: Kästchen links, Beschriftung daneben, Hinweis darunter.
+   Im Markup steht die Beschriftung vor dem Kästchen; das float: left oben
+   brachte es nur daneben, solange die Beschriftung inline stand. */
+#body-settings.oco-shell #ldap .tablerow:has(> input[type="checkbox"]) {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	column-gap: 8px;
+}
+
+#body-settings.oco-shell #ldap .tablerow:has(> input[type="checkbox"]) > input[type="checkbox"] {
+	order: -1;
+	float: none;
+	margin: 0;
+}
+
+#body-settings.oco-shell #ldap .tablerow:has(> input[type="checkbox"]) > label {
+	display: inline-flex;
+	margin: 0;
+}
+
+#body-settings.oco-shell #ldap .tablerow:has(> input[type="checkbox"]) > .hint {
+	flex-basis: 100%;
 }

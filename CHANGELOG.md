@@ -3,6 +3,40 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.0.0] - 2026-09-22
+
+Redesign-Linie (owncloud.online 11.1). Für 11.0 gilt weiter der Zweig `main`.
+Enthält 0.20.7.
+
+### Fixed
+
+- Die LDAP-Karte endete 40 px vor den übrigen Karten der Seite
+  (`calc(100% - 40px)` aus dem alten Layout, mit border-box doppelt abgezogen).
+- Kästchen des Assistenten waren verzerrte Kapseln (15 × 24 px, Haken
+  abgeschnitten); sie haben wieder 24 × 24 px und stehen links neben ihrer
+  Beschriftung.
+- Reiter wurden wie Fließtextverweise unterstrichen und grau hinterlegt; jetzt
+  Reiterleiste im Stil des Redesigns mit Akzentlinie am aktiven Reiter, das
+  Warnsymbol überdeckt den Text nicht mehr.
+- Im Reiter „Gruppen“ (und bei „Nur diese Objektklassen“) standen die
+  Beschriftungen neben statt über den Auswahlknöpfen; die Auswahlknöpfe brachen
+  zweizeilig um und schnitten ihren Text ab.
+- Der Umschalter „LDAP-Abfrage bearbeiten“ wurde zur umrandeten Pille; er ist
+  wieder ein Verweis.
+- Trennlinien der Abschnittsköpfe liefen bis an den Kartenrand; das Symbol
+  „Konfiguration kopieren“ stand in voller Größe über dem Rand seines Knopfes.
+
+### Changed
+
+- Voraussetzung owncloud.online 11.1. Echte Umlaute und Fremdverweise als Text
+  im Changelog.
+
+### Added
+
+- `tests/visual/pruefe-user-ldap.js` (22 Prüfungen: Gestalt in 1440/400 px,
+  Assistent Ende zu Ende gegen einen echten slapd, Anmeldung als LDAP-Konto
+  samt Anzeigename und Gruppe) mit `tests/visual/ldap-testdaten.sh`.
+
 ## [0.20.7] - 2026-09-22
 
 ### Fixed
@@ -11,54 +45,54 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
   das Ergebnis von `$this->cache->get()` direkt an `base64_decode()` weiter. Bei
   einem Fehlschlag ist das null, und die implizite Umwandlung nach string ist
   unter PHP 8 eine Deprecation — auf einem belebten Verzeichnisdienst sind das
-  Tausende Zeilen am Tag, fuer einen voellig normalen Vorgang. Der Fehlschlag
-  kehrt jetzt frueh zurueck. Gemeldet von Scott Barbour (EFAdrive); der Befund
-  gilt unveraendert auch fuer upstream.
+  Tausende Zeilen am Tag, für einen völlig normalen Vorgang. Der Fehlschlag
+  kehrt jetzt früh zurück. Gemeldet von Scott Barbour (EFAdrive); der Befund
+  gilt unverändert auch für upstream.
 
 ## [0.20.6] - 2026-09-21
 
 Entspricht 0.20.4 auf `main`. Die Nummerierung dieses Zweiges liegt seit dem
-Zusammenfuehren in 0.20.5 hoeher, deshalb hier 0.20.6.
+Zusammenführen in 0.20.5 höher, deshalb hier 0.20.6.
 
 ### Security
 
-- **Das Heimatverzeichnis aus dem Verzeichnisdienst wurde ungeprueft
-  uebernommen.** `getHome()` hat den Wert der `homeFolderNamingRule` ohne
-  Normalisierung zurueckgegeben. Der Wert kommt aus dem LDAP-Verzeichnis, das
-  nicht zwangslaeufig unter der Kontrolle der ownCloud-Verwaltung steht: Zeigte
+- **Das Heimatverzeichnis aus dem Verzeichnisdienst wurde ungeprüft
+  übernommen.** `getHome()` hat den Wert der `homeFolderNamingRule` ohne
+  Normalisierung zurückgegeben. Der Wert kommt aus dem LDAP-Verzeichnis, das
+  nicht zwangsläufig unter der Kontrolle der Serververwaltung steht: Zeigte
   er auf das Code-Verzeichnis, wurde die Dateiansicht des Nutzers zu Lese- und
   Schreibzugriff auf die PHP-Dateien der Anwendung. Der Pfad wird jetzt
-  normalisiert (Symlinks auf dem existierenden Anfangsstueck aufgeloest) und
+  normalisiert (Symlinks auf dem existierenden Anfangsstück aufgelöst) und
   muss im Datenverzeichnis liegen oder in einem Verzeichnis, das die Verwaltung
-  ueber die neue Einstellung `user_ldap.home_base_dirs` ausdruecklich erlaubt
-  hat. Andernfalls wird er abgewiesen und protokolliert. Uebernommen von
+  über die neue Einstellung `user_ldap.home_base_dirs` ausdrücklich erlaubt
+  hat. Andernfalls wird er abgewiesen und protokolliert. Übernommen von
   upstream (#849).
 
-- **`escapeFilterPart()` liess Platzhalter am Leben.** Die Ersetzungen liefen
+- **`escapeFilterPart()` ließ Platzhalter am Leben.** Die Ersetzungen liefen
   nacheinander, wodurch die Funktion ihre eigenen Backslashes nachescapte: Aus
   `*` wurde erst `\*` und dann `\\*` - ein escapter Backslash gefolgt von
   einem **rohen** Sternchen. Ein Anmeldename konnte so einen Platzhalter in den
   Suchfilter einschleusen, vor jeder Anmeldung erreichbar. Escapt wird jetzt in
   einem Durchgang in der Hex-Form nach RFC 4515 Abschnitt 3; Steuerzeichen sind
-  damit gleich mit abgedeckt. Uebernommen von upstream (#846).
+  damit gleich mit abgedeckt. Übernommen von upstream (#846).
 
 - **Bind-DN und die drei freien Suchfilter wurden nicht von Steuerzeichen
   befreit.** Nur `ldapAgentPassword` lief durch `FILTER_FLAG_STRIP_LOW`.
   `ldapAgentName`, `ldapUserFilter`, `ldapLoginFilter` und `ldapGroupFilter`
-  gehen woertlich in die Bind-Anfrage bzw. in den Suchfilter und landen damit
+  gehen wörtlich in die Bind-Anfrage bzw. in den Suchfilter und landen damit
   auf der Leitung zu dem Dienst, der auf dem eingestellten Host und Port
-  lauscht. Uebernommen von upstream (#844).
+  lauscht. Übernommen von upstream (#844).
 
 ### Added
 
 - Neue Systemeinstellung `user_ldap.home_base_dirs` (Standard: leer): Liste
-  zusaetzlicher absoluter Verzeichnisse, in denen ein aus LDAP gelesenes
+  zusätzlicher absoluter Verzeichnisse, in denen ein aus LDAP gelesenes
   Heimatverzeichnis liegen darf. Das Datenverzeichnis gilt immer.
 
 ### Changed
 
-- Die Testsammlung fuer `Access`, `Configuration` und `UserEntry` entspricht
-  jetzt der von upstream: 278 statt 223 Faelle. Gegen den alten Code fallen
+- Die Testsammlung für `Access`, `Configuration` und `UserEntry` entspricht
+  jetzt der von upstream: 278 statt 223 Fälle. Gegen den alten Code fallen
   davon 43.
 
 ## [0.20.3] - 2026-08-13
@@ -72,7 +106,7 @@ Zusammenfuehren in 0.20.5 hoeher, deshalb hier 0.20.6.
 
 ### Changed
 
-- Produktname, Beschreibung und uebersetzte Zeichenketten nennen owncloud.online;
+- Produktname, Beschreibung und übersetzte Zeichenketten nennen owncloud.online;
   Verweise auf Fehlerbereich, Repository und Dokumentation zeigen auf das eigene
   Repository. Screenshots aus fremden Repositories entfernt.
 
@@ -83,84 +117,84 @@ Zusammenfuehren in 0.20.5 hoeher, deshalb hier 0.20.6.
 
 ### Fixed
 
-- [#823](https://github.com/owncloud/user_ldap/pull/823) - Don't hit the LDAP server if no exposed attribute is configured
+- Upstream #823 - Don't hit the LDAP server if no exposed attribute is configured
 
 
 ## [0.19.0] - 2024-01-18
 
 ### Added
 
-- [#801](https://github.com/owncloud/user_ldap/pull/801) - Exposed attributes
+- Upstream #801 - Exposed attributes
 
 
 ## [0.18.0] - 2023-07-27
 
 ### Changed
 
-- [#796](https://github.com/owncloud/user_ldap/pull/796) - Use alphabetical order instead of natural order
-- [#787](https://github.com/owncloud/user_ldap/pull/787) - Always return an int from Symfony Command execute method
-- [#783](https://github.com/owncloud/user_ldap/pull/783) - Add condition in `doConnect` for checking network timeout is set
+- Upstream #796 - Use alphabetical order instead of natural order
+- Upstream #787 - Always return an int from Symfony Command execute method
+- Upstream #783 - Add condition in `doConnect` for checking network timeout is set
 - Minimum core version 10.11, mimimum php version 7.4
 - Dependencies updated.
 
 ### Fixed
 
-- [#800](https://github.com/owncloud/user_ldap/pull/800) - guessBaseDN: try to parse domain part from a user given in email syntax
+- Upstream #800 - guessBaseDN: try to parse domain part from a user given in email syntax
 
 
 ## [0.17.0] - 2022-02.24
 
 ### Changed
 
-- [#762](https://github.com/owncloud/user_ldap/pull/762) - Include a notice for the recursive group membership algorithm
-- [#748](https://github.com/owncloud/user_ldap/pull/748) - [full-ci] Expose group's displayname
-- [#734](https://github.com/owncloud/user_ldap/pull/734) - Rise default network timeout to 15 secs
-- [#675](https://github.com/owncloud/user_ldap/pull/675) - [full-ci] Do not check for the username if if has been processed already
+- Upstream #762 - Include a notice for the recursive group membership algorithm
+- Upstream #748 - [full-ci] Expose group's displayname
+- Upstream #734 - Rise default network timeout to 15 secs
+- Upstream #675 - [full-ci] Do not check for the username if if has been processed already
 
 ### Fixed
 
-- [#771](https://github.com/owncloud/user_ldap/pull/771) - fix: fix config file for new transifex client
-- [#770](https://github.com/owncloud/user_ldap/pull/770) - Don't trim binary attribute values as this might corrupt the value if it starts with a non-printable ASCII byte.
+- Upstream #771 - fix: fix config file for new transifex client
+- Upstream #770 - Don't trim binary attribute values as this might corrupt the value if it starts with a non-printable ASCII byte.
 
 
 ## [0.16.1] - 2022-11-07
 
 ### Changed
 
-- [#678](https://github.com/owncloud/user_ldap/pull/678) - Change color of warning sign for expert settings
-- [#711](https://github.com/owncloud/user_ldap/pull/711) - Decode binary GUID where we normally expected string (eDirectory)
-- [#760](https://github.com/owncloud/user_ldap/pull/760) - Binary converter
+- Upstream #678 - Change color of warning sign for expert settings
+- Upstream #711 - Decode binary GUID where we normally expected string (eDirectory)
+- Upstream #760 - Binary converter
 
 ## [0.16.0] - 2021-11-25
 
 ### Changed
-- Fix user group selection layout [#672](https://github.com/owncloud/user_ldap/pull/672)
-- Add a command to invalidate the LDAP cache [#670](https://github.com/owncloud/user_ldap/pull/670)
-- Adjust command description [#671](https://github.com/owncloud/user_ldap/pull/671)
-- Drop PHP 7.2 in sonar-project.properties [#680](https://github.com/owncloud/user_ldap/pull/680)
-- When checking memberof, apply the group filter after getting all groups [#683](https://github.com/owncloud/user_ldap/pull/683)
-- Include "memberOf"-based algorithms to find users within groups [#697](https://github.com/owncloud/user_ldap/pull/697)
+- Fix user group selection layout Upstream #672
+- Add a command to invalidate the LDAP cache Upstream #670
+- Adjust command description Upstream #671
+- Drop PHP 7.2 in sonar-project.properties Upstream #680
+- When checking memberof, apply the group filter after getting all groups Upstream #683
+- Include "memberOf"-based algorithms to find users within groups Upstream #697
 
 ## [0.15.4] - 2021-07-13
 
 ### Fixed
-- user_ldap 0.15.3 double quote in passwords does not work [#662](https://github.com/owncloud/user_ldap/issues/662)
-- Fix display errors in combination with other apps [#660](https://github.com/owncloud/user_ldap/issues/660)
-- [QA] Frontend breaks with other auser auth apps [#659](https://github.com/owncloud/user_ldap/issues/659)
-- [QA] tab break into new line hides content [#656](https://github.com/owncloud/user_ldap/issues/656)
-- [QA] Login Attributes: LDAP Filter misagligned output [#653](https://github.com/owncloud/user_ldap/issues/653)
+- user_ldap 0.15.3 double quote in passwords does not work Upstream #662
+- Fix display errors in combination with other apps Upstream #660
+- [QA] Frontend breaks with other auser auth apps Upstream #659
+- [QA] tab break into new line hides content Upstream #656
+- [QA] Login Attributes: LDAP Filter misagligned output Upstream #653
 
 ## [0.15.3] - 2021-06-14
 
 ### Fixed
-- Fix display errors in combination with other apps [#660](https://github.com/owncloud/user_ldap/issues/660)
-- Fixed read LDAP attribute value 0 returned as null [#599](https://github.com/owncloud/user_ldap/issues/599)
-- Security: filter special characters from password field [#636](https://github.com/owncloud/user_ldap/issues/636)
-- LDAP multiple base dns break pagination [#307](https://github.com/owncloud/user_ldap/issues/307)
+- Fix display errors in combination with other apps Upstream #660
+- Fixed read LDAP attribute value 0 returned as null Upstream #599
+- Security: filter special characters from password field Upstream #636
+- LDAP multiple base dns break pagination Upstream #307
 
 ### Changed
-- Add warning for disabling email login regarding strict login check [#581](https://github.com/owncloud/user_ldap/issues/581) (Requires 10.5.0)
-- Facelift [#597](https://github.com/owncloud/user_ldap/issues/597)
+- Add warning for disabling email login regarding strict login check Upstream #581 (Requires 10.5.0)
+- Facelift Upstream #597
 - Bump libraries
 
 
@@ -168,7 +202,7 @@ Zusammenfuehren in 0.20.5 hoeher, deshalb hier 0.20.6.
 ## [0.15.2] - 2020-06-16
 
 ### Fixed
-- Reissue search in case of missing cookie in continued paged search - [#551](https://github.com/owncloud/user_ldap/issues/551)
+- Reissue search in case of missing cookie in continued paged search - Upstream #551
 
 ### Changed
 - Bump libraries
@@ -177,132 +211,115 @@ Zusammenfuehren in 0.20.5 hoeher, deshalb hier 0.20.6.
 
 ### Fixed
 
-- Allow plus in LDAP usernames - [#490](https://github.com/owncloud/user_ldap/issues/490)
-- Easier tls - [#512](https://github.com/owncloud/user_ldap/issues/512)
+- Allow plus in LDAP usernames - Upstream #490
+- Easier tls - Upstream #512
 
 ## [0.15.0] - 2019-12-20
 
 ### Fixed
 
-- Don't delete / disable Users if they change their DN - [#470](https://github.com/owncloud/user_ldap/issues/470)
+- Don't delete / disable Users if they change their DN - Upstream #470
 
 ### Changed
 
-- Drop PHP 7.0 - [#474](https://github.com/owncloud/user_ldap/issues/474)
+- Drop PHP 7.0 - Upstream #474
 - Requires ownCloud min-version 10.4
 
 ## [0.14.0] - 2019-11-11
 
 ### Added
 
-- Add network timeout setting - [#324](https://github.com/owncloud/user_ldap/issues/324)
-- Log bind errors [#436](https://github.com/owncloud/user_ldap/pull/436)
-- Reuse existing LDAP accounts if available [#165](https://github.com/owncloud/user_ldap/pull/165)
+- Add network timeout setting - Upstream #324
+- Log bind errors Upstream #436
+- Reuse existing LDAP accounts if available Upstream #165
 
 ### Changed
 
-- Allow avatars to be changed by users if not provided by LDAP - [#188](https://github.com/owncloud/user_ldap/issues/188)
-- Remove PHP 5.6 support - [#388](https://github.com/owncloud/user_ldap/issues/388)
-- Clean up Application initialization code - [#396](https://github.com/owncloud/user_ldap/issues/396)
-- Remove unused use statements - [#399](https://github.com/owncloud/user_ldap/issues/399) [#400](https://github.com/owncloud/user_ldap/issues/400)
-- Simplify connection: Get rid of init method [#437](https://github.com/owncloud/user_ldap/pull/437)
-- Replace magic numbers with constants [#435](https://github.com/owncloud/user_ldap/pull/435)
+- Allow avatars to be changed by users if not provided by LDAP - Upstream #188
+- Remove PHP 5.6 support - Upstream #388
+- Clean up Application initialization code - Upstream #396
+- Remove unused use statements - Upstream #399 Upstream #400
+- Simplify connection: Get rid of init method Upstream #437
+- Replace magic numbers with constants Upstream #435
 
 ### Fixed
 
-- Only return users valid for ownCloud when getting LDAP group members - [#12](https://github.com/owncloud/user_ldap/issues/12)
-- Fix paging when limit is used - [#315](https://github.com/owncloud/user_ldap/issues/315)
-- Extract housekeeping part from new LDAP wizard - [#396](https://github.com/owncloud/user_ldap/pull/396)
-- loginName2UserName is already called for an object, not a class - [#398](https://github.com/owncloud/user_ldap/pull/398)
-- Remove unused use statements - [#400](https://github.com/owncloud/user_ldap/pull/400) - [#399](https://github.com/owncloud/user_ldap/pull/399)
-- Include port only if there is port [#425](https://github.com/owncloud/user_ldap/pull/425)
-- Remove no longer existing job from appinfo [#430](https://github.com/owncloud/user_ldap/pull/430)
+- Only return users valid for ownCloud when getting LDAP group members - Upstream #12
+- Fix paging when limit is used - Upstream #315
+- Extract housekeeping part from new LDAP wizard - Upstream #396
+- loginName2UserName is already called for an object, not a class - Upstream #398
+- Remove unused use statements - Upstream #400 - Upstream #399
+- Include port only if there is port Upstream #425
+- Remove no longer existing job from appinfo Upstream #430
 
 
 ## [0.13.0] - 2018-12-11
 
 ### Changed
 
-- Set max version to 10 because core is switching to Semver - [#319](https://github.com/owncloud/user_ldap/issues/319)
-- Update Screenshot - [#306](https://github.com/owncloud/user_ldap/issues/306)
+- Set max version to 10 because core is switching to Semver - Upstream #319
+- Update Screenshot - Upstream #306
 
 ### Fixed
 
-- Remove legacy table and resolve dn encoding issues - [#248](https://github.com/owncloud/user_ldap/issues/248)
-- Suppress "invalid quota" message if quota isn't set for the user - [#237](https://github.com/owncloud/user_ldap/issues/237)
+- Remove legacy table and resolve dn encoding issues - Upstream #248
+- Suppress "invalid quota" message if quota isn't set for the user - Upstream #237
 
 
 ## [0.12.0] - 2018-11-05
 
 ### Added
 
-- Store "samaccountname" in user preferences table - [#254](https://github.com/owncloud/user_ldap/issues/254)
-- PHP 7.2 support - [#280](https://github.com/owncloud/user_ldap/issues/280)
+- Store "samaccountname" in user preferences table - Upstream #254
+- PHP 7.2 support - Upstream #280
 
 ### Fixed
 
-- Display name and email will not be editable from the profile page - [#218](https://github.com/owncloud/user_ldap/issues/218)
-- Do not throw exception when user not found on LDAP during login - [#269](https://github.com/owncloud/user_ldap/issues/269)
-- Users with no avatar in LDAP are now able to add avatar again, like in ownCloud 9.1 - [#256](https://github.com/owncloud/user_ldap/pull/256)
-- Replaced deprecated config API calls - [#258](https://github.com/owncloud/user_ldap/pull/258)
+- Display name and email will not be editable from the profile page - Upstream #218
+- Do not throw exception when user not found on LDAP during login - Upstream #269
+- Users with no avatar in LDAP are now able to add avatar again, like in ownCloud 9.1 - Upstream #256
+- Replaced deprecated config API calls - Upstream #258
 
 ### Removed
 
-- Removed obsolete comment reference to ldapUserCleanupInterval - [#213](https://github.com/owncloud/user_ldap/issues/213)
+- Removed obsolete comment reference to ldapUserCleanupInterval - Upstream #213
 
 ## [0.11.0] - 2018-04-19
 
 ### Added
 
-- Ability to output ldap configurations (`ldap:show-config`) as json [#185](https://github.com/owncloud/user_ldap/pull/185)
+- Ability to output ldap configurations (`ldap:show-config`) as json Upstream #185
 
 ### Changed
 
-- Frontend routes converted to proper Controllers [#199](https://github.com/owncloud/user_ldap/pull/199)
-- Fully leverage core account synchronisation [#156](https://github.com/owncloud/user_ldap/pull/156)
-- Improved error log messages [#194](https://github.com/owncloud/user_ldap/pull/194)
+- Frontend routes converted to proper Controllers Upstream #199
+- Fully leverage core account synchronisation Upstream #156
+- Improved error log messages Upstream #194
 
 ### Fixed
 
-- Error with encrypted storage when a unsynchronized user logs in for the first time [#178](https://github.com/owncloud/user_ldap/pull/178)
-- Properly use filters when synchronizing mapped users by dn [#168](https://github.com/owncloud/user_ldap/pull/168)
-- Fallback to ownClouds default quota, if the provided quota by ldap can not be parsed correctly [#153](https://github.com/owncloud/user_ldap/issues/153)
+- Error with encrypted storage when a unsynchronized user logs in for the first time Upstream #178
+- Properly use filters when synchronizing mapped users by dn Upstream #168
+- Fallback to ownClouds default quota, if the provided quota by ldap can not be parsed correctly Upstream #153
 
 ## [0.10.0] - 2017-12-20
 
 ### Fixed
 
-- Rework LDAP app to match account table logic [#125](https://github.com/owncloud/user_ldap/issues/125)
-- Use custom uuid attribute if configured - [#158](https://github.com/owncloud/user_ldap/issues/158)
-- Sync displayname on login - [#157](https://github.com/owncloud/user_ldap/issues/157)
-- Fix working with LDAP replica server - [#138](https://github.com/owncloud/user_ldap/issues/138)
-- Allow specifying the prefix for occ ldap:create-empty-config - [#7](https://github.com/owncloud/user_ldap/issues/7)
-- Remove fix for ldap installation - [#132](https://github.com/owncloud/user_ldap/issues/132)
-- Make the time between needsRefresh configurable - [#120](https://github.com/owncloud/user_ldap/issues/120)
-- Keep the current quota if no suitable quota is found - [#123](https://github.com/owncloud/user_ldap/issues/123)
-- Only use IndexIgnore if mod_autoindex.c is enabled/loaded - [#112](https://github.com/owncloud/user_ldap/issues/112)
-- Remove unneeded account updates during sync - [#109](https://github.com/owncloud/user_ldap/issues/109)
-- Fix possible race condition - [#8](https://github.com/owncloud/user_ldap/issues/8)
-- Remove automatic enable of a configuration - [#10](https://github.com/owncloud/user_ldap/issues/10)
-- Add missing spaces to log message - [#110](https://github.com/owncloud/user_ldap/issues/110)
-- Add hint for max search term length - [#105](https://github.com/owncloud/user_ldap/issues/105)
-- Allow proxy to check next server - [#101](https://github.com/owncloud/user_ldap/issues/101)
+- Rework LDAP app to match account table logic Upstream #125
+- Use custom uuid attribute if configured - Upstream #158
+- Sync displayname on login - Upstream #157
+- Fix working with LDAP replica server - Upstream #138
+- Allow specifying the prefix for occ ldap:create-empty-config - Upstream #7
+- Remove fix for ldap installation - Upstream #132
+- Make the time between needsRefresh configurable - Upstream #120
+- Keep the current quota if no suitable quota is found - Upstream #123
+- Only use IndexIgnore if mod_autoindex.c is enabled/loaded - Upstream #112
+- Remove unneeded account updates during sync - Upstream #109
+- Fix possible race condition - Upstream #8
+- Remove automatic enable of a configuration - Upstream #10
+- Add missing spaces to log message - Upstream #110
+- Add hint for max search term length - Upstream #105
+- Allow proxy to check next server - Upstream #101
 
 
-[Unreleased]: https://github.com/owncloud/user_ldap/compare/v0.19.1...master
-[0.19.1]: https://github.com/owncloud/user_ldap/compare/v0.19.0...v0.19.1
-[0.19.0]: https://github.com/owncloud/user_ldap/compare/v0.18.0...v0.19.0
-[0.18.0]: https://github.com/owncloud/user_ldap/compare/v0.17.0...v0.18.0
-[0.17.0]: https://github.com/owncloud/user_ldap/compare/v0.16.1...v0.17.0
-[0.16.1]: https://github.com/owncloud/user_ldap/compare/v0.16.0...v0.16.1
-[0.16.0]: https://github.com/owncloud/user_ldap/compare/v0.15.4...v0.16.0
-[0.15.4]: https://github.com/owncloud/user_ldap/compare/v0.15.3...v0.15.4
-[0.15.3]: https://github.com/owncloud/user_ldap/compare/v0.15.2...v0.15.3
-[0.15.2]: https://github.com/owncloud/user_ldap/compare/v0.15.1...v0.15.2
-[0.15.1]: https://github.com/owncloud/user_ldap/compare/v0.15.0...v0.15.1
-[0.15.0]: https://github.com/owncloud/user_ldap/compare/v0.14.0...v0.15.0
-[0.14.0]: https://github.com/owncloud/user_ldap/compare/v0.13.0...v0.14.0
-[0.13.0]: https://github.com/owncloud/user_ldap/compare/v0.12.0...v0.13.0
-[0.12.0]: https://github.com/owncloud/user_ldap/compare/v0.11.0...v0.12.0
-[0.11.0]: https://github.com/owncloud/user_ldap/compare/v0.10.0...v0.11.0
-[0.10.0]: https://github.com/owncloud/user_ldap/compare/0.9.1...v0.10.0

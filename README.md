@@ -20,7 +20,7 @@ Verzeichnisdienst; owncloud.online speichert die Verzeichnis-Passwörter nicht.
 
 ## Voraussetzungen
 
-* owncloud.online 11.x
+* owncloud.online 11.1 oder neuer innerhalb von 11.x (Redesign; für 11.0 gilt der Zweig `main`)
 * PHP 8.4 mit der Erweiterung `ldap` – fehlt sie, zeigt die Einstellungsseite
   eine Warnung und das Backend arbeitet nicht
 * erreichbarer LDAP- oder AD-Server; für StartTLS bzw. `ldaps://` muss das
