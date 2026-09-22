@@ -251,7 +251,17 @@ class Connection extends LDAPUtility {
 		}
 		$key = $this->getCacheKey($key);
 
-		return \json_decode(\base64_decode($this->cache->get($key)), true);
+		// A cache miss returns null, and base64_decode(null) is a deprecated
+		// implicit null-to-string conversion under PHP 8. Every miss therefore
+		// wrote a log line - on a busy directory that is thousands a day, for
+		// a case that is entirely normal. Return early instead; the result is
+		// the same null the callers already expect.
+		$cached = $this->cache->get($key);
+		if ($cached === null) {
+			return null;
+		}
+
+		return \json_decode(\base64_decode($cached), true);
 	}
 
 	/**

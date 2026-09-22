@@ -3,6 +3,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [0.20.5] - 2026-09-22
+
+Entspricht 0.20.7 auf `redesign`; die Nummerierung dieses Zweiges laeuft
+eigenstaendig weiter.
+
+### Fixed
+
+- **Jeder Cache-Fehlschlag schrieb eine Protokollzeile.** `getFromCache()` gab
+  das Ergebnis von `$this->cache->get()` direkt an `base64_decode()` weiter. Bei
+  einem Fehlschlag ist das null, und die implizite Umwandlung nach string ist
+  unter PHP 8 eine Deprecation — auf einem belebten Verzeichnisdienst sind das
+  Tausende Zeilen am Tag, fuer einen voellig normalen Vorgang. Der Fehlschlag
+  kehrt jetzt frueh zurueck. Gemeldet von Scott Barbour (EFAdrive); der Befund
+  gilt unveraendert auch fuer upstream.
+
 ## [0.20.4] - 2026-09-21
 
 ### Security
