@@ -254,7 +254,7 @@ class Manager {
 	 */
 	public function getFromEntry($ldapEntry) {
 		$this->checkAccess();
-		$userEntry = new UserEntry($this->ocConfig, $this->logger, $this->getConnection(), $ldapEntry);
+		$userEntry = new UserEntry($this->ocConfig, $this->logger, $this->getConnection(), $ldapEntry, $this->db);
 		$dn = $userEntry->getDN();
 
 		if (!$this->access->isDNPartOfBase($dn, $this->getConnection()->ldapBaseUsers)) {

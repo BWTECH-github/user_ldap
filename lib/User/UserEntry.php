@@ -26,7 +26,9 @@ namespace OCA\User_LDAP\User;
 use OCA\User_LDAP\Access;
 use OCA\User_LDAP\Connection;
 use OCA\User_LDAP\Attributes\ConverterHub;
+use OCA\User_LDAP\User_Proxy;
 use OCP\IConfig;
+use OCP\IDBConnection;
 use OCP\ILogger;
 
 /**
@@ -59,6 +61,13 @@ class UserEntry {
 	 * @var string
 	 */
 	protected $ownCloudUID;
+	/**
+	 * Nur für den Bestandsschutz bereits angelegter Heimatverzeichnisse, siehe
+	 * isEstablishedHome(). Ohne Verbindung gibt es keinen Bestandsschutz.
+	 *
+	 * @var IDBConnection|null
+	 */
+	protected $db;
 
 	/**
 	 * @brief constructor, make sure the subclasses call this one!
@@ -67,12 +76,14 @@ class UserEntry {
 	 * // FIXME Connection is used to look up configuration ... pass in Configuration instead?
 	 * @param Connection $connection to lookup configured attribute names
 	 * @param array $ldapEntry an ldapEntry returned from Access::fetchListOfUsers()
+	 * @param IDBConnection|null $db to look up the home an existing account already has
 	 * @throws \InvalidArgumentException if entry does not contain a dn
 	 */
-	public function __construct(IConfig $config, ILogger $logger, Connection $connection, array $ldapEntry) {
+	public function __construct(IConfig $config, ILogger $logger, Connection $connection, array $ldapEntry, ?IDBConnection $db = null) {
 		$this->config = $config;
 		$this->logger = $logger;
 		$this->connection = $connection;
+		$this->db = $db;
 		// Fix ldap entry to force all keys to lowercase
 		foreach ($ldapEntry as $key => $value) {
 			$this->ldapEntry[\strtolower($key)] = $ldapEntry[$key];
@@ -315,6 +326,25 @@ class UserEntry {
 				}
 			}
 
+			// Bestandsschutz nach einem Umzug: Konten aus einer Version vor der
+			// Eingrenzung (ownCloud 10 mit user_ldap <= 0.19.x, owncloud.online
+			// bis user_ldap 0.20.3) haben ihr
+			// Heimatverzeichnis längst in oc_accounts stehen, der Kern legt dort
+			// ihre Dateien ab und ändert den Wert nie wieder. Die Ablehnung würde
+			// hier nichts schützen, aber jede Anmeldung und jeden user:sync dieser
+			// Konten abbrechen. Deshalb gilt genau der bereits eingetragene Pfad
+			// weiter - nie ein neuer, und nie einer im Code- oder Konfigbaum.
+			if ($this->isEstablishedHome($path)) {
+				$this->logger->info(
+					"Home dir <$path> for uid <{$this->ownCloudUID}> is outside of the data directory" .
+					" <$dataDir> and of 'user_ldap.home_base_dirs', but it is the home this account" .
+					" already has - keeping it. List its base directory in 'user_ldap.home_base_dirs'" .
+					" to make this explicit.",
+					['app' => 'user_ldap']
+				);
+				return $path;
+			}
+
 			$this->logger->error(
 				"Home dir <$path> for uid <{$this->getUserId()}> is outside of the data directory" .
 				" <$dataDir> and of any directory listed in the 'user_ldap.home_base_dirs' config" .
@@ -337,6 +367,90 @@ class UserEntry {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Ob $path genau das Heimatverzeichnis ist, das dieses LDAP-Konto bereits in
+	 * oc_accounts eingetragen hat. Nur dann greift der Bestandsschutz:
+	 * - es braucht die Datenbankverbindung und die interne ownCloud-UID,
+	 * - das Konto muss vom LDAP-Backend stammen (kein lokales Konto gleichen Namens),
+	 * - der gespeicherte Pfad muss absolut sein und nach Normalisierung exakt
+	 *   übereinstimmen - ein anderer Pfad aus dem Verzeichnis bleibt abgewiesen,
+	 * - Pfade im oder oberhalb des Code-, App- oder Konfigurationsbaums werden nie
+	 *   übernommen: genau das ist der Angriff, gegen den die Eingrenzung gebaut ist.
+	 *
+	 * Liest nur, schreibt nichts - ein zweiter Aufruf liefert dasselbe Ergebnis.
+	 *
+	 * @param string $path der bereits normalisierte Pfad aus dem Verzeichnis
+	 * @return bool
+	 */
+	protected function isEstablishedHome($path) {
+		if ($this->db === null || !\is_string($this->ownCloudUID) || $this->ownCloudUID === '') {
+			return false;
+		}
+		if ($this->touchesApplicationTree($path)) {
+			return false;
+		}
+		$storedHome = $this->fetchStoredHome($this->ownCloudUID);
+		if (!\is_string($storedHome) || !isset($storedHome[0]) || $storedHome[0] !== '/') {
+			return false;
+		}
+		return self::normalizePath($storedHome) === $path;
+	}
+
+	/**
+	 * Das in oc_accounts eingetragene Heimatverzeichnis eines LDAP-Kontos.
+	 *
+	 * @param string $uid interne ownCloud-UID
+	 * @return string|null null, wenn es kein LDAP-Konto mit dieser UID gibt
+	 */
+	private function fetchStoredHome($uid) {
+		try {
+			$qb = $this->db->getQueryBuilder();
+			$qb->select('home')
+				->from('accounts')
+				->where($qb->expr()->eq('user_id', $qb->createNamedParameter($uid)))
+				->andWhere($qb->expr()->eq('backend', $qb->createNamedParameter(User_Proxy::class)))
+				->setMaxResults(1);
+			$result = $qb->execute();
+			$row = $result->fetchAssociative();
+			$result->free();
+		} catch (\Throwable $e) {
+			// Im Zweifel kein Bestandsschutz: dann gilt die Eingrenzung wie bisher.
+			$this->logger->logException($e, ['app' => 'user_ldap']);
+			return null;
+		}
+		return \is_array($row) && isset($row['home']) ? (string)$row['home'] : null;
+	}
+
+	/**
+	 * Ob $path im Code-, App- oder Konfigurationsbaum liegt oder einen davon
+	 * enthält. Ein solches Heimatverzeichnis würde die PHP-Dateien der Anwendung
+	 * lesbar und beschreibbar machen und bekommt deshalb nie Bestandsschutz.
+	 *
+	 * @param string $path der bereits normalisierte Pfad
+	 * @return bool
+	 */
+	private function touchesApplicationTree($path) {
+		$roots = [\OC::$SERVERROOT, \OC::$configDir];
+		$appsPaths = $this->config->getSystemValue('apps_paths', []);
+		if (\is_array($appsPaths)) {
+			foreach ($appsPaths as $appsPath) {
+				if (\is_array($appsPath) && isset($appsPath['path'])) {
+					$roots[] = $appsPath['path'];
+				}
+			}
+		}
+		foreach ($roots as $root) {
+			if (!\is_string($root) || !isset($root[0]) || $root[0] !== '/') {
+				continue;
+			}
+			$root = self::normalizePath($root);
+			if (self::isContainedIn($path, $root) || self::isContainedIn($root, $path)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

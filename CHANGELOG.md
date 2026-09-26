@@ -3,6 +3,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [0.20.6] - 2026-09-26
+
+### Fixed
+
+- **Nach einem Umzug von ownCloud 10 konnten sich LDAP-Konten mit einem
+  Heimatverzeichnis außerhalb des Datenverzeichnisses nicht mehr anmelden.**
+  Seit 0.20.4 weist `getHome()` jeden Pfad aus der `homeFolderNamingRule` ab,
+  der weder im Datenverzeichnis noch unter `user_ldap.home_base_dirs` liegt.
+  Der Kern ruft `getHome()` aber bei jeder Anmeldung und jedem `user:sync`
+  auf, auch für Konten, deren Heimatverzeichnis längst in `oc_accounts` steht
+  und dort nie mehr geändert wird. Übernommene Konten (etwa
+  `attr:homeDirectory` mit `/home/<uid>` oder einem NFS-Pfad) scheiterten
+  damit an der Anmeldung, obwohl ihre Dateien genau dort liegen. Jetzt gilt
+  ein Bestandsschutz: Stimmt der Pfad aus dem Verzeichnis nach Normalisierung
+  exakt mit dem Heimatverzeichnis überein, das dieses LDAP-Konto
+  (`backend = OCA\User_LDAP\User_Proxy`) bereits in `oc_accounts` hat, wird er
+  weiter verwendet und auf Stufe info protokolliert. Neue Konten, abweichende
+  Pfade und alles im oder oberhalb des Code-, App- oder Konfigurationsbaums
+  bleiben abgewiesen. Geschrieben wird dabei nichts.
+
 ## [0.20.5] - 2026-09-22
 
 Entspricht 0.20.7 auf `redesign`; die Nummerierung dieses Zweiges laeuft
