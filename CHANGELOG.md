@@ -5,25 +5,46 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [0.20.6] - 2026-09-26
 
+Nicht zu verwechseln mit 0.20.6 auf `redesign` (dort = 0.20.4 dieses
+Zweiges). Beim Übertrag nach `redesign` bekommt dieser Stand dort eine eigene,
+höhere Nummer.
+
 ### Fixed
 
-- **Nach einem Umzug von ownCloud 10 konnten sich LDAP-Konten mit einem
-  Heimatverzeichnis außerhalb des Datenverzeichnisses nicht mehr anmelden.**
-  Seit 0.20.4 weist `getHome()` jeden Pfad aus der `homeFolderNamingRule` ab,
-  der weder im Datenverzeichnis noch unter `user_ldap.home_base_dirs` liegt.
-  Der Kern ruft `getHome()` aber bei jeder Anmeldung und jedem `user:sync`
-  auf, auch für Konten, deren Heimatverzeichnis längst in `oc_accounts` steht
-  und dort nie mehr geändert wird. Übernommene Konten (etwa
-  `attr:homeDirectory` mit `/home/<uid>` oder einem NFS-Pfad) scheiterten
-  damit an der Anmeldung, obwohl ihre Dateien genau dort liegen. Jetzt gilt
-  ein Bestandsschutz: Stimmt der Pfad aus dem Verzeichnis nach Normalisierung
-  exakt mit dem Heimatverzeichnis überein, das dieses LDAP-Konto
-  (`backend = OCA\User_LDAP\User_Proxy`) bereits in `oc_accounts` hat, wird er
-  weiter verwendet und einmal je Anfrage auf Stufe info protokolliert. Neue
-  Konten, abweichende Pfade, alles im oder oberhalb des Code-, App- oder
-  Konfigurationsbaums und alles in Systemverzeichnissen (`/`, `/etc`, `/root`,
-  `/usr`, `/proc`, `/var/log` …) bleiben abgewiesen. Geschrieben wird dabei
-  nichts.
+- **Nach einem Umzug konnten sich LDAP-Konten mit einem Heimatverzeichnis
+  außerhalb des Datenverzeichnisses nicht mehr anmelden.** Seit 0.20.4 weist
+  `getHome()` jeden Pfad aus der `homeFolderNamingRule` ab, der weder im
+  Datenverzeichnis noch unter `user_ldap.home_base_dirs` liegt. Der Kern ruft
+  `getHome()` aber bei jeder Anmeldung und jedem `user:sync` auf, auch für
+  Konten, deren Heimatverzeichnis längst in `oc_accounts` steht – übernehmen
+  tut er den Wert nur, solange dort nichts steht, eine Abweichung
+  protokolliert er bloß. Betroffen waren Konten aus Fassungen ohne
+  Eingrenzung (ownCloud 10 mit user_ldap bis 0.19.x, upstream 0.20.0 bis
+  0.20.2, owncloud.online bis 0.20.3), etwa `attr:homeDirectory` mit
+  `/home/<uid>` oder einem NFS-Pfad, und Konten, bei denen gespeichertes
+  Heimatverzeichnis und Attribut auseinanderlaufen (Namensregel nachträglich
+  gesetzt, `occ user:move-home`, geändertes Attribut).
+
+  Für ein Konto des LDAP-Backends (`backend = OCA\User_LDAP\User_Proxy`) mit
+  absolutem Heimatverzeichnis in `oc_accounts` entscheidet jetzt dieses
+  gespeicherte Heimatverzeichnis, denn nur damit arbeitet der Kern:
+  - Ist es zulässig, gilt wie unter ownCloud 10 der Wert aus dem Verzeichnis.
+    Liegt dieser außerhalb der erlaubten Verzeichnisse, steht einmal je
+    Anfrage eine Zeile auf Stufe info im Protokoll.
+  - Ist es unzulässig, bleibt das Konto gesperrt – auch wenn das Verzeichnis
+    inzwischen einen harmlosen Wert liefert. Unzulässig ist ein
+    Heimatverzeichnis, das die Wurzel ist oder das Datenverzeichnis (die
+    Dateien aller Konten), den Code-, Konfigurations- oder App-Baum oder ein
+    Systemverzeichnis (`/etc`, `/root`, `/usr`, `/proc`, `/var/log` …) enthält
+    oder gleich einem davon ist, und eines, das außerhalb der erlaubten
+    Verzeichnisse im Code-Baum oder in einem Systemverzeichnis liegt. Lag das
+    Datenverzeichnis der Altinstanz im Code-Baum (`/var/www/owncloud/data`)
+    und liegt es jetzt woanders, gibt `user_ldap.home_base_dirs` das alte
+    Verzeichnis frei.
+
+  Neue Konten und Konten mit leerem Heimatverzeichnis unterliegen weiter der
+  Eingrenzung. Geschrieben wird nichts; für Konfigurationen mit Namensregel
+  kommt je Konto und Anfrage eine Abfrage auf `oc_accounts` hinzu.
 
 ## [0.20.5] - 2026-09-22
 

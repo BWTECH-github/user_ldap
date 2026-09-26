@@ -27,16 +27,19 @@ use OCP\IDBConnection;
 use OCP\ILogger;
 
 /**
- * Bestandsschutz für Heimatverzeichnisse nach einem Umzug: Ein Konto, das aus
- * einer ownCloud-10-Datenbank mitkommt, hat sein Heimatverzeichnis schon in
- * oc_accounts. Liegt es außerhalb des Datenverzeichnisses, darf die seit 0.20.4
- * geltende Eingrenzung seine Anmeldung nicht abbrechen - neue oder andere Pfade
- * aus dem Verzeichnis bleiben aber abgewiesen.
+ * Heimatverzeichnisse bereits angelegter Konten, etwa nach einem Umzug von
+ * ownCloud 10: Der Kern verwendet für ein Konto mit eingetragenem
+ * Heimatverzeichnis den Wert aus dem Verzeichnis nicht mehr
+ * (SyncService::syncHome). Maßgeblich ist deshalb das gespeicherte
+ * Heimatverzeichnis - ist es zulässig, darf die Eingrenzung des Werts aus dem
+ * Verzeichnis die Anmeldung nicht abbrechen; ist es unzulässig, bleibt das
+ * Konto gesperrt, egal was das Verzeichnis liefert. Neue Konten bleiben der
+ * Eingrenzung unterworfen.
  *
  * @group DB
  */
 class UserEntryEstablishedHomeTest extends \Test\TestCase {
-	private const DATA_DIR = '/var/owncloud-online-data';
+	private const DATA_DIR = '/srv/oco-online/data';
 
 	/** @var IConfig|\PHPUnit\Framework\MockObject\MockObject */
 	private $config;
@@ -48,6 +51,8 @@ class UserEntryEstablishedHomeTest extends \Test\TestCase {
 	private $db;
 	/** @var string[] */
 	private $createdUids = [];
+	/** @var string[] Wert von user_ldap.home_base_dirs */
+	private $baseDirs = [];
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -58,7 +63,10 @@ class UserEntryEstablishedHomeTest extends \Test\TestCase {
 				if ($key === 'datadirectory') {
 					return self::DATA_DIR;
 				}
-				if ($key === 'user_ldap.home_base_dirs' || $key === 'apps_paths') {
+				if ($key === 'user_ldap.home_base_dirs') {
+					return $this->baseDirs;
+				}
+				if ($key === 'apps_paths') {
 					return [];
 				}
 				return $default;
@@ -126,6 +134,10 @@ class UserEntryEstablishedHomeTest extends \Test\TestCase {
 		return 'ldap-bestand-' . \uniqid();
 	}
 
+	private static function serverRoot(): string {
+		return \rtrim(\OC::$SERVERROOT, '/');
+	}
+
 	public function testEstablishedHomeOutsideDataDirIsKept(): void {
 		$uid = $this->uid();
 		$this->insertAccount($uid, '/srv/homes/alice');
@@ -144,12 +156,79 @@ class UserEntryEstablishedHomeTest extends \Test\TestCase {
 	}
 
 	/**
-	 * Ein eingetragenes Heimatverzeichnis in einem Systemverzeichnis kann nur aus
-	 * einem manipulierten Verzeichnisdienst stammen und bleibt gesperrt.
+	 * Die Namensregel attr:homeDirectory wurde erst nach dem Anlegen gesetzt:
+	 * gespeichert ist datadir/<uid>, das Verzeichnis liefert /home/<uid>. Unter
+	 * ownCloud 10 lief die Anmeldung, der Kern hat die Abweichung nur
+	 * protokolliert - so bleibt es.
+	 */
+	public function testStoredHomeInDataDirWithDifferentPathFromDirectoryIsKept(): void {
+		$uid = $this->uid();
+		$this->insertAccount($uid, self::DATA_DIR . "/$uid");
+		$before = $this->accountRow($uid);
+
+		$this->logger->expects($this->once())->method('info');
+		$this->logger->expects($this->never())->method('error');
+
+		$entry = $this->entry($uid, "/home/$uid", $this->db);
+		self::assertSame("/home/$uid", $entry->getHome());
+		self::assertSame("/home/$uid", $entry->getHome());
+		self::assertSame($before, $this->accountRow($uid));
+	}
+
+	/**
+	 * occ user:move-home auf der Altinstanz oder ein geändertes Attribut: das
+	 * gespeicherte und das gelieferte Heimatverzeichnis laufen auseinander.
+	 */
+	public function testDifferentPathFromDirectoryIsAcceptedForAnEstablishedAccount(): void {
+		$uid = $this->uid();
+		$this->insertAccount($uid, '/srv/homes/alice');
+		$before = $this->accountRow($uid);
+
+		$this->logger->expects($this->never())->method('error');
+
+		self::assertSame('/srv/homes/mallory', $this->entry($uid, '/srv/homes/mallory', $this->db)->getHome());
+		self::assertSame($before, $this->accountRow($uid));
+	}
+
+	public function testPathFromDirectoryIsReturnedNormalized(): void {
+		$uid = $this->uid();
+		$this->insertAccount($uid, '/srv/homes//alice/');
+
+		$entry = $this->entry($uid, '/srv/homes/./alice', $this->db);
+		self::assertSame('/srv/homes/alice', $entry->getHome());
+	}
+
+	/**
+	 * Ein unzulässiges Heimatverzeichnis in oc_accounts sperrt das Konto auch
+	 * dann, wenn das Verzeichnis inzwischen einen harmlosen Wert liefert: Der
+	 * Kern würde mit dem gespeicherten weiterarbeiten.
 	 *
+	 * @dataProvider providesForbiddenStoredHomes
+	 */
+	public function testForbiddenStoredHomeIsRefusedWhateverTheDirectorySays(string $storedHome): void {
+		$uid = $this->uid();
+		$this->insertAccount($uid, $storedHome);
+
+		$this->expectException(\OutOfBoundsException::class);
+		// relativer Wert = im Datenverzeichnis, für ein neues Konto zulässig
+		$this->entry($uid, 'x', $this->db)->getHome();
+	}
+
+	public function providesForbiddenStoredHomes(): array {
+		return [
+			'code root' => [self::serverRoot()],
+			'apps directory' => [self::serverRoot() . '/apps'],
+			'config directory' => [self::serverRoot() . '/config'],
+			'above the code root' => [\dirname(self::serverRoot())],
+			'system directory' => ['/etc/alice'],
+		];
+	}
+
+	/**
+	 * @dataProvider providesForbiddenStoredHomes
 	 * @dataProvider providesSystemDirectoryHomes
 	 */
-	public function testEstablishedHomeInSystemDirectoryIsRefused(string $home): void {
+	public function testForbiddenStoredHomeIsRefusedWithTheSamePathFromDirectory(string $home): void {
 		$uid = $this->uid();
 		$this->insertAccount($uid, $home);
 
@@ -164,29 +243,103 @@ class UserEntryEstablishedHomeTest extends \Test\TestCase {
 			'root' => ['/root'],
 			'var log' => ['/var/log/alice'],
 			'proc' => ['/proc/self'],
+			'usr local' => ['/usr/local/alice'],
 			'wurzel' => ['/'],
+			// enthält /var/log, /var/run und /var/spool
+			'var' => ['/var'],
 		];
 	}
 
-	public function testStoredHomeIsComparedAfterNormalization(): void {
+	/**
+	 * Ein Heimatverzeichnis gleich dem Datenverzeichnis oder oberhalb davon
+	 * sieht die Dateien aller Konten.
+	 *
+	 * @dataProvider providesHomesAtOrAboveDataDir
+	 */
+	public function testStoredHomeAtOrAboveDataDirIsRefused(string $home): void {
 		$uid = $this->uid();
-		$this->insertAccount($uid, '/srv/homes//alice/');
-
-		$entry = $this->entry($uid, '/srv/homes/./alice', $this->db);
-		self::assertSame('/srv/homes/alice', $entry->getHome());
-	}
-
-	public function testDifferentPathFromDirectoryIsStillRefused(): void {
-		$uid = $this->uid();
-		$this->insertAccount($uid, '/srv/homes/alice');
+		$this->insertAccount($uid, $home);
 
 		$this->expectException(\OutOfBoundsException::class);
-		$this->entry($uid, '/srv/homes/mallory', $this->db)->getHome();
+		$this->entry($uid, '/srv/homes/alice', $this->db)->getHome();
+	}
+
+	public function providesHomesAtOrAboveDataDir(): array {
+		return [
+			'data directory' => [self::DATA_DIR],
+			'above the data directory' => [\dirname(self::DATA_DIR)],
+		];
+	}
+
+	public function testForbiddenStoredHomeIsLoggedOnce(): void {
+		$uid = $this->uid();
+		$this->insertAccount($uid, '/etc/alice');
+
+		$this->logger->expects($this->once())->method('error')
+			->with($this->stringContains('/etc/alice'));
+
+		$entry = $this->entry($uid, '/etc/alice', $this->db);
+		for ($i = 0; $i < 3; $i++) {
+			try {
+				$entry->getHome();
+				self::fail('OutOfBoundsException erwartet');
+			} catch (\OutOfBoundsException $e) {
+				// erwartet
+			}
+		}
+	}
+
+	/**
+	 * Standardlayout einer Altinstanz: Datenverzeichnis im Code-Baum. Liegt es
+	 * nach dem Umzug woanders, zeigen die gespeicherten Heimatverzeichnisse in
+	 * den Code-Baum - freischalten lässt sich das über home_base_dirs.
+	 */
+	public function testStoredHomeInCodeTreeIsAcceptedWhenListedAsBaseDir(): void {
+		$oldData = self::serverRoot() . '/data-alt';
+		$uid = $this->uid();
+		$this->insertAccount($uid, "$oldData/$uid");
+
+		$this->baseDirs = [$oldData];
+		self::assertSame("$oldData/$uid", $this->entry($uid, "$oldData/$uid", $this->db)->getHome());
+
+		$this->baseDirs = [];
+		$this->expectException(\OutOfBoundsException::class);
+		$this->entry($uid, "$oldData/$uid", $this->db)->getHome();
+	}
+
+	/**
+	 * Auch in einem erlaubten Verzeichnis bleibt verboten, was den Code-Baum
+	 * oder ein Systemverzeichnis enthält.
+	 */
+	public function testBaseDirDoesNotPermitAHomeContainingTheCodeTree(): void {
+		$this->baseDirs = ['/'];
+		$uid = $this->uid();
+		$this->insertAccount($uid, \dirname(self::serverRoot()));
+
+		$this->expectException(\OutOfBoundsException::class);
+		$this->entry($uid, '/srv/homes/alice', $this->db)->getHome();
 	}
 
 	public function testNewAccountWithoutStoredHomeIsRefused(): void {
 		$this->expectException(\OutOfBoundsException::class);
 		$this->entry($this->uid(), '/srv/homes/alice', $this->db)->getHome();
+	}
+
+	public function testNewAccountInsideDataDirIsAccepted(): void {
+		$uid = $this->uid();
+		self::assertSame(self::DATA_DIR . "/$uid", $this->entry($uid, $uid, $this->db)->getHome());
+	}
+
+	/**
+	 * Solange oc_accounts.home leer ist, übernimmt der Kern den Wert aus dem
+	 * Verzeichnis - dann muss die Eingrenzung greifen.
+	 */
+	public function testAccountWithEmptyHomeIsTreatedAsNew(): void {
+		$uid = $this->uid();
+		$this->insertAccount($uid, '');
+
+		$this->expectException(\OutOfBoundsException::class);
+		$this->entry($uid, '/srv/homes/alice', $this->db)->getHome();
 	}
 
 	public function testAccountOfAnotherBackendIsNotAdopted(): void {
@@ -195,38 +348,6 @@ class UserEntryEstablishedHomeTest extends \Test\TestCase {
 
 		$this->expectException(\OutOfBoundsException::class);
 		$this->entry($uid, '/srv/homes/alice', $this->db)->getHome();
-	}
-
-	/**
-	 * Auch ein bereits eingetragenes Heimatverzeichnis im Code-Baum bleibt
-	 * gesperrt: genau dafür gibt es die Eingrenzung.
-	 *
-	 * @dataProvider providesApplicationTreePaths
-	 */
-	public function testEstablishedHomeInApplicationTreeIsRefused(string $suffix): void {
-		$home = \rtrim(\OC::$SERVERROOT, '/') . $suffix;
-		$uid = $this->uid();
-		$this->insertAccount($uid, $home);
-
-		$this->expectException(\OutOfBoundsException::class);
-		$this->entry($uid, $home, $this->db)->getHome();
-	}
-
-	public function providesApplicationTreePaths(): array {
-		return [
-			'code root' => [''],
-			'apps directory' => ['/apps'],
-			'config directory' => ['/config'],
-		];
-	}
-
-	public function testEstablishedHomeAboveApplicationTreeIsRefused(): void {
-		$home = \dirname(\rtrim(\OC::$SERVERROOT, '/'));
-		$uid = $this->uid();
-		$this->insertAccount($uid, $home);
-
-		$this->expectException(\OutOfBoundsException::class);
-		$this->entry($uid, $home, $this->db)->getHome();
 	}
 
 	public function testWithoutDatabaseConnectionNothingIsAdopted(): void {
@@ -241,8 +362,9 @@ class UserEntryEstablishedHomeTest extends \Test\TestCase {
 		$uid = $this->uid();
 		$this->insertAccount($uid, '/srv/homes/alice');
 
-		// neuer Bestand im Datenverzeichnis: die Eingrenzung lässt ihn ohnehin
-		// durch, der gespeicherte Wert spielt keine Rolle
+		$this->logger->expects($this->never())->method('info');
+		$this->logger->expects($this->never())->method('error');
+
 		$entry = $this->entry($uid, self::DATA_DIR . '/alice', $this->db);
 		self::assertSame(self::DATA_DIR . '/alice', $entry->getHome());
 	}

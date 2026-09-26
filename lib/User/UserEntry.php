@@ -62,26 +62,34 @@ class UserEntry {
 	 */
 	protected $ownCloudUID;
 	/**
-	 * Nur für den Bestandsschutz bereits angelegter Heimatverzeichnisse, siehe
-	 * isEstablishedHome(). Ohne Verbindung gibt es keinen Bestandsschutz.
+	 * Nur für bereits angelegte Konten, siehe getEstablishedHome(). Ohne
+	 * Verbindung gilt jedes Konto als neu.
 	 *
 	 * @var IDBConnection|null
 	 */
 	protected $db;
 	/**
-	 * Ergebnis von isEstablishedHome() je Pfad. Der Kern ruft getHome() je
+	 * Ergebnis von lookupEstablishedHome(), einmal je Instanz ermittelt: [] =
+	 * noch nicht nachgesehen, sonst [string|null]. Der Kern ruft getHome() je
 	 * Anmeldung bzw. user:sync bis zu dreimal auf (SyncService::syncHome); ohne
-	 * diesen Merker wären das drei Abfragen und drei Protokollzeilen.
+	 * diesen Merker wären das drei Abfragen.
+	 *
+	 * @var array
+	 */
+	private $establishedHome = [];
+	/**
+	 * Schon geschriebene Protokollzeilen zum Heimatverzeichnis, damit jede je
+	 * Instanz nur einmal erscheint.
 	 *
 	 * @var bool[]
 	 */
-	private $establishedHomes = [];
+	private $loggedHomeNotices = [];
 
 	/**
-	 * Systemverzeichnisse, in denen ein Heimatverzeichnis auch dann keinen
-	 * Bestandsschutz bekommt, wenn es schon eingetragen ist: Ein Wert wie /etc
-	 * oder /root kann nur aus einem manipulierten Verzeichnis stammen, und die
-	 * Eingrenzung ist dann das Einzige, was den Zugriff darauf verhindert.
+	 * Systemverzeichnisse, in denen kein bereits eingetragenes Heimatverzeichnis
+	 * liegen und die keines enthalten darf: Ein Wert wie /etc, /root oder /var
+	 * kann nur aus einem manipulierten Verzeichnisdienst oder einem Fehlgriff
+	 * stammen.
 	 */
 	private const SYSTEM_DIRS = [
 		'/bin', '/boot', '/dev', '/etc', '/lib', '/lib32', '/lib64', '/proc',
@@ -293,7 +301,8 @@ class UserEntry {
 	 * returns the home directory of the user if specified by LDAP settings
 	 * @return string|null
 	 * @throws \Exception if a naming rule attribute is enforced, but it doesn't exist for that LDAP user
-	 * @throws \OutOfBoundsException if the configured attribute points outside of the permitted base directories
+	 * @throws \OutOfBoundsException if the configured attribute points outside of the permitted base
+	 *                               directories, or if the home this account already has is not permitted
 	 */
 	public function getHome() {
 		$path = '';
@@ -324,37 +333,43 @@ class UserEntry {
 			// i.e. remote code execution. Confine it to the data directory, and
 			// to any additional base directories the admin opted into.
 			$path = self::normalizePath($path);
-			$baseDirs = $this->config->getSystemValue('user_ldap.home_base_dirs', []);
-			if (!\is_array($baseDirs)) {
-				$baseDirs = [];
-			}
-			\array_unshift($baseDirs, $dataDir);
+			$baseDirs = $this->getPermittedBaseDirs($dataDir);
 
-			foreach ($baseDirs as $baseDir) {
-				// A base directory is only meaningful as an absolute path. Anything
-				// else is a misconfiguration and must not widen the comparison: '.'
-				// and './' would normalize to the empty string, which makes the
-				// containment check below accept every absolute path, and a relative
-				// value would resolve against the working directory of whichever
-				// process happens to run this check.
-				if (!\is_string($baseDir) || !isset($baseDir[0]) || $baseDir[0] !== '/') {
-					continue;
+			// Bereits angelegtes Konto: Der Kern übernimmt den Wert von hier nur,
+			// solange oc_accounts.home leer ist; danach protokolliert er eine
+			// Abweichung bloß und arbeitet mit dem gespeicherten Heimatverzeichnis
+			// weiter (SyncService::syncHome). Die Eingrenzung des Werts aus dem
+			// Verzeichnis schützt dann nichts, würde aber jede Anmeldung und jeden
+			// user:sync abbrechen - nach einem Umzug aus einer Fassung ohne
+			// Eingrenzung (ownCloud 10 mit user_ldap bis 0.19.x, upstream 0.20.0
+			// bis 0.20.2, owncloud.online bis 0.20.3; upstream 0.20.3 hat sie
+			// schon), nach einem occ user:move-home, wenn die Namensregel erst
+			// nachträglich gesetzt wurde oder sich das Attribut geändert hat.
+			// Geprüft wird deshalb das gespeicherte
+			// Heimatverzeichnis, das tatsächlich benutzt wird: Ist es eines, das
+			// kein Konto haben darf, bleibt das Konto gesperrt; sonst gilt wie
+			// unter ownCloud 10 der Wert aus dem Verzeichnis.
+			$establishedHome = $this->getEstablishedHome();
+			if ($establishedHome !== null) {
+				if ($this->isForbiddenEstablishedHome($establishedHome, $dataDir, $baseDirs)) {
+					throw new \OutOfBoundsException(
+						'The home dir this account already has is not permitted for uid: ' . $this->ownCloudUID
+					);
 				}
-				if (self::isContainedIn($path, self::normalizePath($baseDir))) {
-					return $path;
+				if (!self::isContainedInAny($path, $baseDirs)) {
+					$this->logHomeNoticeOnce(
+						'kept',
+						'info',
+						"Home dir <$path> for uid <{$this->ownCloudUID}> is outside of the data directory" .
+						" and of 'user_ldap.home_base_dirs', but the account already has its home" .
+						" <$establishedHome>, which the server keeps using - the value from LDAP is not" .
+						" applied to it. List its base directory in 'user_ldap.home_base_dirs' to make this explicit."
+					);
 				}
+				return $path;
 			}
 
-			// Bestandsschutz nach einem Umzug: Konten aus einer Version vor der
-			// Eingrenzung (ownCloud 10 mit user_ldap <= 0.19.x, owncloud.online
-			// bis user_ldap 0.20.3) haben ihr
-			// Heimatverzeichnis längst in oc_accounts stehen, der Kern legt dort
-			// ihre Dateien ab und ändert den Wert nie wieder. Die Ablehnung würde
-			// hier nichts schützen, aber jede Anmeldung und jeden user:sync dieser
-			// Konten abbrechen. Deshalb gilt genau der bereits eingetragene Pfad
-			// weiter - nie ein neuer, nie einer im Code- oder Konfigbaum und nie
-			// einer in einem Systemverzeichnis.
-			if ($this->isEstablishedHome($path)) {
+			if (self::isContainedInAny($path, $baseDirs)) {
 				return $path;
 			}
 
@@ -383,54 +398,65 @@ class UserEntry {
 	}
 
 	/**
-	 * Ob $path genau das Heimatverzeichnis ist, das dieses LDAP-Konto bereits in
-	 * oc_accounts eingetragen hat. Nur dann greift der Bestandsschutz:
-	 * - es braucht die Datenbankverbindung und die interne ownCloud-UID,
-	 * - das Konto muss vom LDAP-Backend stammen (kein lokales Konto gleichen Namens),
-	 * - der gespeicherte Pfad muss absolut sein und nach Normalisierung exakt
-	 *   übereinstimmen - ein anderer Pfad aus dem Verzeichnis bleibt abgewiesen,
-	 * - Pfade im oder oberhalb des Code-, App- oder Konfigurationsbaums werden nie
-	 *   übernommen: genau das ist der Angriff, gegen den die Eingrenzung gebaut ist,
-	 * - ebenso wenig Pfade in Systemverzeichnissen wie /etc oder /root.
+	 * The data directory and the base directories listed in
+	 * 'user_ldap.home_base_dirs', normalized. A base directory is only
+	 * meaningful as an absolute path. Anything else is a misconfiguration and
+	 * must not widen the comparison: '.' and './' would normalize to the empty
+	 * string, which makes the containment check accept every absolute path, and
+	 * a relative value would resolve against the working directory of whichever
+	 * process happens to run the check.
 	 *
-	 * Liest nur, schreibt nichts - ein zweiter Aufruf liefert dasselbe Ergebnis,
-	 * innerhalb derselben Instanz ohne erneute Abfrage.
-	 *
-	 * @param string $path der bereits normalisierte Pfad aus dem Verzeichnis
-	 * @return bool
+	 * @param mixed $dataDir
+	 * @return string[]
 	 */
-	protected function isEstablishedHome($path) {
-		if (!\array_key_exists($path, $this->establishedHomes)) {
-			$established = $this->checkEstablishedHome($path);
-			$this->establishedHomes[$path] = $established;
-			if ($established) {
-				$this->logger->info(
-					"Home dir <$path> for uid <{$this->ownCloudUID}> is outside of the data directory" .
-					" and of 'user_ldap.home_base_dirs', but it is the home this account already has -" .
-					" keeping it. List its base directory in 'user_ldap.home_base_dirs' to make this explicit.",
-					['app' => 'user_ldap']
-				);
+	private function getPermittedBaseDirs($dataDir) {
+		$baseDirs = $this->config->getSystemValue('user_ldap.home_base_dirs', []);
+		if (!\is_array($baseDirs)) {
+			$baseDirs = [];
+		}
+		\array_unshift($baseDirs, $dataDir);
+
+		$permitted = [];
+		foreach ($baseDirs as $baseDir) {
+			if (\is_string($baseDir) && isset($baseDir[0]) && $baseDir[0] === '/') {
+				$permitted[] = self::normalizePath($baseDir);
 			}
 		}
-		return $this->establishedHomes[$path];
+		return $permitted;
 	}
 
 	/**
-	 * @param string $path der bereits normalisierte Pfad aus dem Verzeichnis
-	 * @return bool
+	 * Das Heimatverzeichnis, das dieses LDAP-Konto bereits in oc_accounts hat,
+	 * normalisiert - oder null für ein neues Konto. Als bereits angelegt gilt
+	 * ein Konto nur,
+	 * - wenn es die Datenbankverbindung und die interne ownCloud-UID gibt,
+	 * - wenn es vom LDAP-Backend stammt (kein lokales Konto gleichen Namens),
+	 * - wenn sein gespeichertes Heimatverzeichnis absolut ist: Solange es leer
+	 *   ist, übernimmt der Kern den Wert von hier, dann gilt die Eingrenzung.
+	 *
+	 * Liest nur, schreibt nichts; je Instanz wird einmal nachgesehen.
+	 *
+	 * @return string|null
 	 */
-	private function checkEstablishedHome($path) {
-		if ($this->db === null || !\is_string($this->ownCloudUID) || $this->ownCloudUID === '') {
-			return false;
+	protected function getEstablishedHome() {
+		if ($this->establishedHome === []) {
+			$this->establishedHome = [$this->lookupEstablishedHome()];
 		}
-		if ($this->touchesApplicationTree($path) || $this->isInSystemDirectory($path)) {
-			return false;
+		return $this->establishedHome[0];
+	}
+
+	/**
+	 * @return string|null
+	 */
+	private function lookupEstablishedHome() {
+		if ($this->db === null || !\is_string($this->ownCloudUID) || $this->ownCloudUID === '') {
+			return null;
 		}
 		$storedHome = $this->fetchStoredHome($this->ownCloudUID);
 		if (!\is_string($storedHome) || !isset($storedHome[0]) || $storedHome[0] !== '/') {
-			return false;
+			return null;
 		}
-		return self::normalizePath($storedHome) === $path;
+		return self::normalizePath($storedHome);
 	}
 
 	/**
@@ -451,7 +477,7 @@ class UserEntry {
 			$row = $result->fetchAssociative();
 			$result->free();
 		} catch (\Throwable $e) {
-			// Im Zweifel kein Bestandsschutz: dann gilt die Eingrenzung wie bisher.
+			// Im Zweifel gilt das Konto als neu: dann greift die Eingrenzung.
 			$this->logger->logException($e, ['app' => 'user_ldap']);
 			return null;
 		}
@@ -459,35 +485,89 @@ class UserEntry {
 	}
 
 	/**
-	 * Ob $path die Wurzel ist oder in einem der SYSTEM_DIRS liegt. Verglichen wird
-	 * gegen die wörtliche und die aufgelöste Form (etwa /lib -> /usr/lib).
+	 * Ob das bereits eingetragene Heimatverzeichnis eines ist, das kein Konto
+	 * haben darf; wenn ja, wird das einmal je Instanz als Fehler protokolliert.
 	 *
-	 * @param string $path der bereits normalisierte Pfad
+	 * @param string $home bereits normalisiert
+	 * @param mixed $dataDir
+	 * @param string[] $baseDirs aus getPermittedBaseDirs()
 	 * @return bool
 	 */
-	private function isInSystemDirectory($path) {
-		if ($path === '/' || $path === '') {
-			return true;
+	private function isForbiddenEstablishedHome($home, $dataDir, array $baseDirs) {
+		$reason = $this->whyForbiddenHome($home, $dataDir, $baseDirs);
+		if ($reason === null) {
+			return false;
 		}
-		foreach (self::SYSTEM_DIRS as $systemDir) {
-			if (self::isContainedIn($path, $systemDir)
-				|| self::isContainedIn($path, self::normalizePath($systemDir))
-			) {
-				return true;
-			}
-		}
-		return false;
+		$this->logHomeNoticeOnce(
+			'forbidden',
+			'error',
+			"The home dir <$home> that the LDAP account <{$this->ownCloudUID}> already has $reason" .
+			" - refusing the account. Correct its home in oc_accounts; if it lies in the code tree of an" .
+			" older installation but holds nothing but user data, list that directory in 'user_ldap.home_base_dirs'."
+		);
+		return true;
 	}
 
 	/**
-	 * Ob $path im Code-, App- oder Konfigurationsbaum liegt oder einen davon
-	 * enthält. Ein solches Heimatverzeichnis würde die PHP-Dateien der Anwendung
-	 * lesbar und beschreibbar machen und bekommt deshalb nie Bestandsschutz.
+	 * Warum ein Heimatverzeichnis keinem Konto gehören darf, oder null.
 	 *
-	 * @param string $path der bereits normalisierte Pfad
-	 * @return bool
+	 * Immer verboten ist ein Heimatverzeichnis, das das Datenverzeichnis (die
+	 * Dateien aller Konten), den Code-, Konfigurations- oder App-Baum oder ein
+	 * Systemverzeichnis enthält oder gleich einem davon ist. Darin zu liegen
+	 * ist dagegen nur verboten, solange es nicht zugleich in einem erlaubten
+	 * Verzeichnis liegt - sonst träfe es jede Installation, deren
+	 * Datenverzeichnis wie üblich im Code-Baum liegt.
+	 *
+	 * @param string $home bereits normalisiert
+	 * @param mixed $dataDir
+	 * @param string[] $baseDirs aus getPermittedBaseDirs()
+	 * @return string|null
 	 */
-	private function touchesApplicationTree($path) {
+	private function whyForbiddenHome($home, $dataDir, array $baseDirs) {
+		if ($home === '' || $home === '/') {
+			return 'is the file system root';
+		}
+		if (\is_string($dataDir) && isset($dataDir[0]) && $dataDir[0] === '/'
+			&& self::isContainedIn(self::normalizePath($dataDir), $home)
+		) {
+			return 'is or contains the data directory, i.e. the files of all accounts';
+		}
+		$applicationRoots = $this->getApplicationRoots();
+		foreach ($applicationRoots as $root) {
+			if (self::isContainedIn($root, $home)) {
+				return "is or contains the application directory <$root>";
+			}
+		}
+		$systemDirs = self::getSystemDirs();
+		foreach ($systemDirs as $systemDir) {
+			if (self::isContainedIn($systemDir, $home)) {
+				return "is or contains the system directory <$systemDir>";
+			}
+		}
+		if (self::isContainedInAny($home, $baseDirs)) {
+			return null;
+		}
+		foreach ($applicationRoots as $root) {
+			if (self::isContainedIn($home, $root)) {
+				return "lies in the application directory <$root>";
+			}
+		}
+		foreach ($systemDirs as $systemDir) {
+			if (self::isContainedIn($home, $systemDir)) {
+				return "lies in the system directory <$systemDir>";
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Code-, Konfigurations- und App-Verzeichnisse, normalisiert. Ein
+	 * Heimatverzeichnis darin würde die PHP-Dateien der Anwendung lesbar und
+	 * beschreibbar machen.
+	 *
+	 * @return string[]
+	 */
+	private function getApplicationRoots() {
 		$roots = [\OC::$SERVERROOT, \OC::$configDir];
 		$appsPaths = $this->config->getSystemValue('apps_paths', []);
 		if (\is_array($appsPaths)) {
@@ -497,16 +577,40 @@ class UserEntry {
 				}
 			}
 		}
+		$normalized = [];
 		foreach ($roots as $root) {
-			if (!\is_string($root) || !isset($root[0]) || $root[0] !== '/') {
-				continue;
-			}
-			$root = self::normalizePath($root);
-			if (self::isContainedIn($path, $root) || self::isContainedIn($root, $path)) {
-				return true;
+			if (\is_string($root) && isset($root[0]) && $root[0] === '/') {
+				$normalized[] = self::normalizePath($root);
 			}
 		}
-		return false;
+		return $normalized;
+	}
+
+	/**
+	 * SYSTEM_DIRS in wörtlicher und aufgelöster Form (etwa /lib -> /usr/lib).
+	 *
+	 * @return string[]
+	 */
+	private static function getSystemDirs() {
+		$dirs = [];
+		foreach (self::SYSTEM_DIRS as $systemDir) {
+			$dirs[$systemDir] = true;
+			$dirs[self::normalizePath($systemDir)] = true;
+		}
+		return \array_keys($dirs);
+	}
+
+	/**
+	 * @param string $key
+	 * @param string $level 'info' oder 'error'
+	 * @param string $message
+	 */
+	private function logHomeNoticeOnce($key, $level, $message) {
+		if (isset($this->loggedHomeNotices[$key])) {
+			return;
+		}
+		$this->loggedHomeNotices[$key] = true;
+		$this->logger->$level($message, ['app' => 'user_ldap']);
 	}
 
 	/**
@@ -593,6 +697,23 @@ class UserEntry {
 		// compare against the separator as well, so that a sibling directory
 		// sharing the base dir's prefix (/data-evil vs /data) is not accepted
 		return \strpos($path, \rtrim($baseDir, '/') . '/') === 0;
+	}
+
+	/**
+	 * Whether $path lies in or is one of $baseDirs. All arguments are expected
+	 * to be normalized already.
+	 *
+	 * @param string $path
+	 * @param string[] $baseDirs
+	 * @return bool
+	 */
+	private static function isContainedInAny($path, array $baseDirs) {
+		foreach ($baseDirs as $baseDir) {
+			if (self::isContainedIn($path, $baseDir)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
