@@ -45,6 +45,14 @@ höhere Nummer.
   Neue Konten und Konten mit leerem Heimatverzeichnis unterliegen weiter der
   Eingrenzung. Geschrieben wird nichts; für Konfigurationen mit Namensregel
   kommt je Konto und Anfrage eine Abfrage auf `oc_accounts` hinzu.
+- **Hintergrundjobs früherer Fassungen blieben für immer liegen.** 0.9.0 bis
+  0.13.x trugen `OCA\User_LDAP\Jobs\UpdateGroups` ein, 0.9.0 (ownCloud
+  10.0.0) zusätzlich `OCA\User_LDAP\Jobs\CleanUp`. Beide Klassen gibt es nicht
+  mehr, der Kern entfernt Jobs beim App-Update nicht, und seine Liste alter
+  Jobs führt `CleanUp` nur mit führendem Backslash. Die Einträge ließen sich
+  nicht bauen und wurden bei jedem Versuch protokolliert. Die neue Migration
+  `Version20260926130000` entfernt genau diese Einträge, solange es die Klasse
+  nicht gibt.
 
 ## [0.20.5] - 2026-09-22
 
