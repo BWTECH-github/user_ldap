@@ -19,9 +19,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
   ein Bestandsschutz: Stimmt der Pfad aus dem Verzeichnis nach Normalisierung
   exakt mit dem Heimatverzeichnis überein, das dieses LDAP-Konto
   (`backend = OCA\User_LDAP\User_Proxy`) bereits in `oc_accounts` hat, wird er
-  weiter verwendet und auf Stufe info protokolliert. Neue Konten, abweichende
-  Pfade und alles im oder oberhalb des Code-, App- oder Konfigurationsbaums
-  bleiben abgewiesen. Geschrieben wird dabei nichts.
+  weiter verwendet und einmal je Anfrage auf Stufe info protokolliert. Neue
+  Konten, abweichende Pfade, alles im oder oberhalb des Code-, App- oder
+  Konfigurationsbaums und alles in Systemverzeichnissen (`/`, `/etc`, `/root`,
+  `/usr`, `/proc`, `/var/log` …) bleiben abgewiesen. Geschrieben wird dabei
+  nichts.
 
 ## [0.20.5] - 2026-09-22
 

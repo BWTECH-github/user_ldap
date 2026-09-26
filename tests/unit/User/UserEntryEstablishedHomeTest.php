@@ -131,14 +131,41 @@ class UserEntryEstablishedHomeTest extends \Test\TestCase {
 		$this->insertAccount($uid, '/srv/homes/alice');
 		$before = $this->accountRow($uid);
 
-		$this->logger->expects($this->atLeastOnce())->method('info');
+		// der Kern ruft getHome() je Sync bis zu dreimal auf - eine Zeile genügt
+		$this->logger->expects($this->once())->method('info');
 		$this->logger->expects($this->never())->method('error');
 
 		$entry = $this->entry($uid, '/srv/homes/alice', $this->db);
 		self::assertSame('/srv/homes/alice', $entry->getHome());
-		// zweiter Aufruf: gleiches Ergebnis, nichts wird geschrieben
+		// weitere Aufrufe: gleiches Ergebnis, nichts wird geschrieben
+		self::assertSame('/srv/homes/alice', $entry->getHome());
 		self::assertSame('/srv/homes/alice', $entry->getHome());
 		self::assertSame($before, $this->accountRow($uid));
+	}
+
+	/**
+	 * Ein eingetragenes Heimatverzeichnis in einem Systemverzeichnis kann nur aus
+	 * einem manipulierten Verzeichnisdienst stammen und bleibt gesperrt.
+	 *
+	 * @dataProvider providesSystemDirectoryHomes
+	 */
+	public function testEstablishedHomeInSystemDirectoryIsRefused(string $home): void {
+		$uid = $this->uid();
+		$this->insertAccount($uid, $home);
+
+		$this->expectException(\OutOfBoundsException::class);
+		$this->entry($uid, $home, $this->db)->getHome();
+	}
+
+	public function providesSystemDirectoryHomes(): array {
+		return [
+			'etc' => ['/etc'],
+			'unter etc' => ['/etc/alice'],
+			'root' => ['/root'],
+			'var log' => ['/var/log/alice'],
+			'proc' => ['/proc/self'],
+			'wurzel' => ['/'],
+		];
 	}
 
 	public function testStoredHomeIsComparedAfterNormalization(): void {

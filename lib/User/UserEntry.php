@@ -68,6 +68,25 @@ class UserEntry {
 	 * @var IDBConnection|null
 	 */
 	protected $db;
+	/**
+	 * Ergebnis von isEstablishedHome() je Pfad. Der Kern ruft getHome() je
+	 * Anmeldung bzw. user:sync bis zu dreimal auf (SyncService::syncHome); ohne
+	 * diesen Merker wären das drei Abfragen und drei Protokollzeilen.
+	 *
+	 * @var bool[]
+	 */
+	private $establishedHomes = [];
+
+	/**
+	 * Systemverzeichnisse, in denen ein Heimatverzeichnis auch dann keinen
+	 * Bestandsschutz bekommt, wenn es schon eingetragen ist: Ein Wert wie /etc
+	 * oder /root kann nur aus einem manipulierten Verzeichnis stammen, und die
+	 * Eingrenzung ist dann das Einzige, was den Zugriff darauf verhindert.
+	 */
+	private const SYSTEM_DIRS = [
+		'/bin', '/boot', '/dev', '/etc', '/lib', '/lib32', '/lib64', '/proc',
+		'/root', '/run', '/sbin', '/sys', '/usr', '/var/log', '/var/run', '/var/spool',
+	];
 
 	/**
 	 * @brief constructor, make sure the subclasses call this one!
@@ -333,15 +352,9 @@ class UserEntry {
 			// ihre Dateien ab und ändert den Wert nie wieder. Die Ablehnung würde
 			// hier nichts schützen, aber jede Anmeldung und jeden user:sync dieser
 			// Konten abbrechen. Deshalb gilt genau der bereits eingetragene Pfad
-			// weiter - nie ein neuer, und nie einer im Code- oder Konfigbaum.
+			// weiter - nie ein neuer, nie einer im Code- oder Konfigbaum und nie
+			// einer in einem Systemverzeichnis.
 			if ($this->isEstablishedHome($path)) {
-				$this->logger->info(
-					"Home dir <$path> for uid <{$this->ownCloudUID}> is outside of the data directory" .
-					" <$dataDir> and of 'user_ldap.home_base_dirs', but it is the home this account" .
-					" already has - keeping it. List its base directory in 'user_ldap.home_base_dirs'" .
-					" to make this explicit.",
-					['app' => 'user_ldap']
-				);
 				return $path;
 			}
 
@@ -377,18 +390,40 @@ class UserEntry {
 	 * - der gespeicherte Pfad muss absolut sein und nach Normalisierung exakt
 	 *   übereinstimmen - ein anderer Pfad aus dem Verzeichnis bleibt abgewiesen,
 	 * - Pfade im oder oberhalb des Code-, App- oder Konfigurationsbaums werden nie
-	 *   übernommen: genau das ist der Angriff, gegen den die Eingrenzung gebaut ist.
+	 *   übernommen: genau das ist der Angriff, gegen den die Eingrenzung gebaut ist,
+	 * - ebenso wenig Pfade in Systemverzeichnissen wie /etc oder /root.
 	 *
-	 * Liest nur, schreibt nichts - ein zweiter Aufruf liefert dasselbe Ergebnis.
+	 * Liest nur, schreibt nichts - ein zweiter Aufruf liefert dasselbe Ergebnis,
+	 * innerhalb derselben Instanz ohne erneute Abfrage.
 	 *
 	 * @param string $path der bereits normalisierte Pfad aus dem Verzeichnis
 	 * @return bool
 	 */
 	protected function isEstablishedHome($path) {
+		if (!\array_key_exists($path, $this->establishedHomes)) {
+			$established = $this->checkEstablishedHome($path);
+			$this->establishedHomes[$path] = $established;
+			if ($established) {
+				$this->logger->info(
+					"Home dir <$path> for uid <{$this->ownCloudUID}> is outside of the data directory" .
+					" and of 'user_ldap.home_base_dirs', but it is the home this account already has -" .
+					" keeping it. List its base directory in 'user_ldap.home_base_dirs' to make this explicit.",
+					['app' => 'user_ldap']
+				);
+			}
+		}
+		return $this->establishedHomes[$path];
+	}
+
+	/**
+	 * @param string $path der bereits normalisierte Pfad aus dem Verzeichnis
+	 * @return bool
+	 */
+	private function checkEstablishedHome($path) {
 		if ($this->db === null || !\is_string($this->ownCloudUID) || $this->ownCloudUID === '') {
 			return false;
 		}
-		if ($this->touchesApplicationTree($path)) {
+		if ($this->touchesApplicationTree($path) || $this->isInSystemDirectory($path)) {
 			return false;
 		}
 		$storedHome = $this->fetchStoredHome($this->ownCloudUID);
@@ -421,6 +456,27 @@ class UserEntry {
 			return null;
 		}
 		return \is_array($row) && isset($row['home']) ? (string)$row['home'] : null;
+	}
+
+	/**
+	 * Ob $path die Wurzel ist oder in einem der SYSTEM_DIRS liegt. Verglichen wird
+	 * gegen die wörtliche und die aufgelöste Form (etwa /lib -> /usr/lib).
+	 *
+	 * @param string $path der bereits normalisierte Pfad
+	 * @return bool
+	 */
+	private function isInSystemDirectory($path) {
+		if ($path === '/' || $path === '') {
+			return true;
+		}
+		foreach (self::SYSTEM_DIRS as $systemDir) {
+			if (self::isContainedIn($path, $systemDir)
+				|| self::isContainedIn($path, self::normalizePath($systemDir))
+			) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
