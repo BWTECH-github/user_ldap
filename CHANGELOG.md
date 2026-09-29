@@ -3,6 +3,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [0.21.0] - 2026-09-29
+
+Inhaltlich gleich 0.20.7, geändert ist nur die Versionsnummer.
+
+### Changed
+
+- **Versionsnummer auf 0.21.0 angehoben, damit die Migration aus 0.20.6 beim
+  Update läuft.** Der Kern aktualisiert eine App nach Ordnertausch und
+  `occ upgrade` nur, wenn sich mindestens die zweite Stelle ihrer
+  Versionsnummer ändert (`OC_App::shouldUpgrade`). Ändert sich nur die dritte
+  Stelle (0.20.5 → 0.20.6 oder 0.20.7), trägt er die neue Nummer ein und
+  führt weder Migrationen noch Repair-Schritte aus. `Version20260926130000`
+  blieb so offen, und die verwaisten Hintergrundjobs `UpdateGroups` und
+  `CleanUp` blieben stehen, bis jemand `occ migrations:migrate user_ldap` von
+  Hand aufrief. Mit 0.21.0 läuft die Migration beim Update von 0.20.5 wie von
+  0.20.6 und 0.20.7 aus. Am Code ändert sich nichts. Anders als bei einem
+  Sprung in der dritten Stelle zeigt die Instanz zwischen Ordnertausch und
+  `occ upgrade` statt der Anmeldung die Update-Seite; mit eingeschaltetem
+  user_ldap ist das HTTP 503 mit dem Verweis auf die Kommandozeile.
+
 ## [0.20.7] - 2026-09-29
 
 Nicht zu verwechseln mit 0.20.7 auf `redesign` (dort = 0.20.5 dieses
