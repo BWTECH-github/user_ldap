@@ -3,6 +3,35 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [0.20.7] - 2026-09-29
+
+Nicht zu verwechseln mit 0.20.7 auf `redesign` (dort = 0.20.5 dieses
+Zweiges). `redesign` (1.0.1) hat beide Fehler unten ebenfalls und bekommt die
+Korrektur beim Übertrag unter eigener Nummer.
+
+### Fixed
+
+- **Die erste LDAP-Konfiguration schrieb eine Deprecation ins Protokoll.**
+  `occ ldap:create-empty-config` ohne bestehende Konfiguration führte zu
+  `ltrim(): Passing null to parameter #1` (Stufe 3, `lib/Helper.php#219`):
+  `nextPossibleConfigurationPrefix()` nahm das alphabetisch größte Präfix, und
+  ohne Konfiguration war das null.
+- **„Neue Konfiguration" im Admin-Panel konnte eine bestehende Konfiguration
+  überschreiben.** Aus demselben Grund führte eine benannte Konfiguration, die
+  im Alphabet hinter `s` liegt (`occ ldap:create-empty-config test`), zurück
+  auf `s01`. Das Admin-Panel legte die „neue" Konfiguration dann unter `s01`
+  an und setzte dabei alle Werte der bestehenden `s01` auf die Vorgaben
+  zurück (Host, Bind-DN, Kennwort, Filter). `occ ldap:create-empty-config`
+  meldete eine neue Konfiguration `s01`, legte aber keine an. Ab der
+  hundertsten Konfiguration sortierte zudem `s100` vor `s99`. Das nächste
+  Präfix ergibt sich jetzt aus der höchsten Zahl aller Präfixe der Form
+  `s<Zahl>` (Groß-/Kleinschreibung egal) und ist nie ein bestehendes.
+- **`occ group:list` ohne Suchmuster schrieb zwei Deprecations ins
+  Protokoll.** Der Kern reicht den fehlenden Suchbegriff als null an
+  `getGroups()` durch; `escapeFilterPart()` gab ihn an `strlen()` und
+  `preg_replace_callback()` weiter (`lib/Access.php#1469` und `#1480`). null
+  gilt jetzt als leere Suche.
+
 ## [0.20.6] - 2026-09-26
 
 Nicht zu verwechseln mit 0.20.6 auf `redesign` (dort = 0.20.4 dieses

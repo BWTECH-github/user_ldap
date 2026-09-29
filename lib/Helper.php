@@ -212,12 +212,35 @@ class Helper {
 		}
 	}
 
+	/**
+	 * Liefert ein freies Präfix s<Zahl> für eine neue Konfiguration.
+	 *
+	 * Gezählt werden nur Präfixe der Form s<Zahl>, und zwar nach der Zahl.
+	 * Früher wurde das alphabetisch größte Präfix genommen: Ohne Konfiguration
+	 * war das null (ltrim(null) ist unter PHP 8 veraltet und landete im
+	 * Protokoll), eine benannte Konfiguration hinter 's' im Alphabet ('test')
+	 * führte zurück auf 's01' - das Admin-Panel hat die bestehende s01 dann mit
+	 * Vorgabewerten überschrieben -, und 's100' sortierte vor 's99'.
+	 *
+	 * @return string
+	 */
 	public function nextPossibleConfigurationPrefix() {
-		$prefixes = $this->getServerConfigurationPrefixes();
-		\sort($prefixes);
-		$maxPrefix = \array_pop($prefixes);
-		$count = (int)\ltrim($maxPrefix, 's');
-		return 's'.\str_pad((string)($count+1), 2, '0', STR_PAD_LEFT);
+		// klein geschrieben verglichen: MySQL/MariaDB mit einer Sortierfolge
+		// ohne Groß-/Kleinschreibung hielten 'S02…' und 's02…' für denselben Schlüssel
+		$prefixes = \array_map('strtolower', $this->getServerConfigurationPrefixes());
+		$highest = 0;
+		foreach ($prefixes as $prefix) {
+			// höchstens neun Stellen: bleibt sicher im Integer-Bereich
+			if (\preg_match('/^s(\d{1,9})$/', $prefix, $matches) === 1) {
+				$highest = \max($highest, (int)$matches[1]);
+			}
+		}
+		// die Schleife greift nur bei Präfixen mit mehr als neun Stellen
+		do {
+			$highest++;
+			$candidate = 's' . \str_pad((string)$highest, 2, '0', STR_PAD_LEFT);
+		} while (\in_array($candidate, $prefixes, true));
+		return $candidate;
 	}
 
 	/**

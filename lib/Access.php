@@ -1460,11 +1460,15 @@ class Access implements IUserTools {
 
 	/**
 	* escapes (user provided) parts for LDAP filter
-	* @param string $input, the provided value
+	* @param string|null $input, the provided value
 	* @param bool $allowAsterisk whether in * at the beginning should be preserved
 	* @return string the escaped string
 	*/
 	public function escapeFilterPart($input, $allowAsterisk = false) {
+		// Der Kern reicht einen fehlenden Suchbegriff als null durch (occ
+		// group:list ohne Muster ruft getGroups(null) auf); strlen() und
+		// preg_replace_callback() mit null sind unter PHP 8 veraltet.
+		$input = $input ?? '';
 		$asterisk = '';
 		if ($allowAsterisk && \strlen($input) > 0 && $input[0] === '*') {
 			$asterisk = '*';
