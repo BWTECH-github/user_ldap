@@ -124,19 +124,37 @@
 }
 
 
+/* Zustandsanzeige links, Knöpfe rechts; in schmalen Karten rutschen die Knöpfe
+   in die nächste Zeile. Ohne Umbruch schrumpfte „Fortsetzen“ in der Flex-Zeile
+   unter seine Textbreite und endete bei 320–390 px in „Fortse…“. */
 .ldapWizardControls {
 	display: flex;
 	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
 	justify-content: end;
+	row-gap: 8px;
 }
 
 .ldapWizardControls > div {
 	margin-right: 1rem;
 }
 
+.ldapWizardControls > .stateIndicator {
+	flex: 1 1 12rem;
+	min-width: 0;
+}
+
+.ldapWizardControls > button {
+	flex: 0 0 auto;
+}
+
+/* border-box: width 100% plus Innenabstand ragte 16 px über die Karte;
+   min-height statt height, damit eine umbrochene Meldung nicht herausläuft. */
 .ldapWizardInfo {
+	box-sizing: border-box;
 	width: 100% !important;
-	height: 50px;
+	min-height: 50px;
 	background-color: lightyellow;
 	border-radius: 8px;
 	padding: 10px 8px 6px !important;
@@ -312,6 +330,13 @@ select[multiple=multiple] + button {
 	min-width: 40%;
 	max-width: 100%;
 	white-space: nowrap;
+}
+
+/* Passt die Auswahl nicht in eine Zeile der Karte (schmale Fenster, viele
+   gewählte Objektklassen oder Gruppen), bricht sie um, statt mit „…“ zu enden. */
+#ldap select[multiple=multiple] + button.ui-multiselect {
+	white-space: normal;
+	text-align: left;
 }
 
 /* Das Pfeilsymbol steht als Block vor dem Text (jQuery UI .ui-icon) – der Knopf
@@ -509,11 +534,25 @@ select[multiple=multiple] + button {
 	margin-top: 1rem;
 }
 
+/* Die Assistentenknöpfe sind jQuery-UI-Knöpfe; die Kernregel
+   .ui-widget-content .ui-state-default kürzt sie mit Auslassungspunkten.
+   Hier bricht ein zu langer Text lieber um, der Knopf wird höher. */
 #ldap button {
 	padding: 11px 15px;
 	margin: 0 5px 10px 0;
 	width: auto;
+	max-width: 100%;
 	height: auto;
+	overflow: visible;
+	text-overflow: clip;
+	overflow-wrap: anywhere;
+}
+
+/* Ein fieldset ist per Browservorgabe mindestens so breit wie sein Inhalt
+   (min-inline-size: min-content); die Reiterfläche ragte bei 320 px 36 px
+   über die Karte und die Seite rollte waagerecht. */
+#ldap fieldset {
+	min-width: 0;
 }
 
 #ldap button span {

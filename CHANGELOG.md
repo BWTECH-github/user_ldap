@@ -3,6 +3,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.0.2] - 2026-10-08
+
+### Fixed
+
+- Schmale Fenster (320–390 px): der Assistent ragte 36 px über seine Karte und
+  die Seite rollte waagerecht (fieldset mit Mindestbreite seines Inhalts).
+- „Fortsetzen“ endete in „Fortse…“: die Knöpfe des Assistenten rutschen jetzt
+  in die nächste Zeile statt zu schrumpfen; ein zu langer Knopftext bricht um,
+  statt mit Auslassungspunkten zu enden (auch die Mehrfachauswahl für
+  Objektklassen und Gruppen).
+- Der Hinweiskasten des Assistenten war 16 px breiter als die Karte und hatte
+  eine feste Höhe, aus der eine umbrochene Meldung herauslief.
+
 ## [1.0.1] - 2026-09-23
 
 ### Fixed
