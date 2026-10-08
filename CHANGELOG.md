@@ -3,6 +3,82 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.1.0] - 2026-10-08
+
+Stand der main-Linie bis 0.21.0 (29.09.2026) übernommen.
+
+Die zweite Stelle der Versionsnummer steigt, damit die neue Migration
+`Version20260926130000` beim Update läuft. Der Kern führt Migrationen und
+Repair-Schritte einer App nur aus, wenn sich mindestens die zweite Stelle
+ihrer Versionsnummer ändert (`OC_App::shouldUpgrade`); mit 1.0.3 wären die
+verwaisten Hintergrundjobs stehen geblieben. Zwischen Ordnertausch und
+`occ upgrade` zeigt die Instanz deshalb die Update-Seite.
+
+### Fixed
+
+- **Die erste LDAP-Konfiguration schrieb eine Deprecation ins Protokoll.**
+  `occ ldap:create-empty-config` ohne bestehende Konfiguration führte zu
+  `ltrim(): Passing null to parameter #1` (Stufe 3, `lib/Helper.php#219`):
+  `nextPossibleConfigurationPrefix()` nahm das alphabetisch größte Präfix, und
+  ohne Konfiguration war das null.
+- **„Neue Konfiguration" im Admin-Panel konnte eine bestehende Konfiguration
+  überschreiben.** Aus demselben Grund führte eine benannte Konfiguration, die
+  im Alphabet hinter `s` liegt (`occ ldap:create-empty-config test`), zurück
+  auf `s01`. Das Admin-Panel legte die „neue" Konfiguration dann unter `s01`
+  an und setzte dabei alle Werte der bestehenden `s01` auf die Vorgaben
+  zurück (Host, Bind-DN, Kennwort, Filter). `occ ldap:create-empty-config`
+  meldete eine neue Konfiguration `s01`, legte aber keine an. Ab der
+  hundertsten Konfiguration sortierte zudem `s100` vor `s99`. Das nächste
+  Präfix ergibt sich jetzt aus der höchsten Zahl aller Präfixe der Form
+  `s<Zahl>` (Groß-/Kleinschreibung egal) und ist nie ein bestehendes.
+- **`occ group:list` ohne Suchmuster schrieb zwei Deprecations ins
+  Protokoll.** Der Kern reicht den fehlenden Suchbegriff als null an
+  `getGroups()` durch; `escapeFilterPart()` gab ihn an `strlen()` und
+  `preg_replace_callback()` weiter (`lib/Access.php#1469` und `#1480`). null
+  gilt jetzt als leere Suche.
+- **Nach einem Umzug konnten sich LDAP-Konten mit einem Heimatverzeichnis
+  außerhalb des Datenverzeichnisses nicht mehr anmelden.** Seit 0.20.4 weist
+  `getHome()` jeden Pfad aus der `homeFolderNamingRule` ab, der weder im
+  Datenverzeichnis noch unter `user_ldap.home_base_dirs` liegt. Der Kern ruft
+  `getHome()` aber bei jeder Anmeldung und jedem `user:sync` auf, auch für
+  Konten, deren Heimatverzeichnis längst in `oc_accounts` steht – übernehmen
+  tut er den Wert nur, solange dort nichts steht, eine Abweichung
+  protokolliert er bloß. Betroffen waren Konten aus Fassungen ohne
+  Eingrenzung (ownCloud 10 mit user_ldap bis 0.19.x, upstream 0.20.0 bis
+  0.20.2, owncloud.online bis 0.20.3), etwa `attr:homeDirectory` mit
+  `/home/<uid>` oder einem NFS-Pfad, und Konten, bei denen gespeichertes
+  Heimatverzeichnis und Attribut auseinanderlaufen (Namensregel nachträglich
+  gesetzt, `occ user:move-home`, geändertes Attribut).
+
+  Für ein Konto des LDAP-Backends (`backend = OCA\User_LDAP\User_Proxy`) mit
+  absolutem Heimatverzeichnis in `oc_accounts` entscheidet jetzt dieses
+  gespeicherte Heimatverzeichnis, denn nur damit arbeitet der Kern:
+  - Ist es zulässig, gilt wie unter ownCloud 10 der Wert aus dem Verzeichnis.
+    Liegt dieser außerhalb der erlaubten Verzeichnisse, steht einmal je
+    Anfrage eine Zeile auf Stufe info im Protokoll.
+  - Ist es unzulässig, bleibt das Konto gesperrt – auch wenn das Verzeichnis
+    inzwischen einen harmlosen Wert liefert. Unzulässig ist ein
+    Heimatverzeichnis, das die Wurzel ist oder das Datenverzeichnis (die
+    Dateien aller Konten), den Code-, Konfigurations- oder App-Baum oder ein
+    Systemverzeichnis (`/etc`, `/root`, `/usr`, `/proc`, `/var/log` …) enthält
+    oder gleich einem davon ist, und eines, das außerhalb der erlaubten
+    Verzeichnisse im Code-Baum oder in einem Systemverzeichnis liegt. Lag das
+    Datenverzeichnis der Altinstanz im Code-Baum (`/var/www/owncloud/data`)
+    und liegt es jetzt woanders, gibt `user_ldap.home_base_dirs` das alte
+    Verzeichnis frei.
+
+  Neue Konten und Konten mit leerem Heimatverzeichnis unterliegen weiter der
+  Eingrenzung. Geschrieben wird nichts; für Konfigurationen mit Namensregel
+  kommt je Konto und Anfrage eine Abfrage auf `oc_accounts` hinzu.
+- **Hintergrundjobs früherer Fassungen blieben für immer liegen.** 0.9.0 bis
+  0.13.x trugen `OCA\User_LDAP\Jobs\UpdateGroups` ein, 0.9.0 (ownCloud
+  10.0.0) zusätzlich `OCA\User_LDAP\Jobs\CleanUp`. Beide Klassen gibt es nicht
+  mehr, der Kern entfernt Jobs beim App-Update nicht, und seine Liste alter
+  Jobs führt `CleanUp` nur mit führendem Backslash. Die Einträge ließen sich
+  nicht bauen und wurden bei jedem Versuch protokolliert. Die neue Migration
+  `Version20260926130000` entfernt genau diese Einträge, solange es die Klasse
+  nicht gibt.
+
 ## [1.0.2] - 2026-10-08
 
 ### Fixed

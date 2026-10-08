@@ -119,6 +119,36 @@ class AccessTest extends \Test\TestCase {
 	}
 
 	/**
+	 * Der Kern reicht einen fehlenden Suchbegriff als null an die Backends
+	 * durch (occ group:list ohne Muster: Group\Manager::search(null) ->
+	 * getGroups(null)). Das ist eine leere Suche, ohne PHP-Meldung.
+	 *
+	 * @dataProvider nullSearchDataProvider
+	 * @param bool $allowAsterisk
+	 */
+	public function testEscapeFilterPartTreatsNullAsEmptySearch($allowAsterisk) {
+		$notices = [];
+		\set_error_handler(static function ($errno, $errstr, $errfile, $errline) use (&$notices) {
+			$notices[] = "$errstr at $errfile#$errline";
+			return true;
+		});
+		try {
+			$escaped = $this->access->escapeFilterPart(null, $allowAsterisk);
+		} finally {
+			\restore_error_handler();
+		}
+
+		$this->assertSame(['', []], [$escaped, $notices]);
+	}
+
+	public function nullSearchDataProvider() {
+		return [
+			'ohne Platzhalter' => [false],
+			'mit Platzhalter' => [true],
+		];
+	}
+
+	/**
 	 * @dataProvider escapeFilterPartDataProvider
 	 * @param $input string
 	 */
