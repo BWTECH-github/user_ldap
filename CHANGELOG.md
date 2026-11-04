@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.1.1] - 2026-11-04
+
+### Geändert
+- Versionsangabe für owncloud.online 11.1 vereinheitlicht.
+
 ## [1.1.0] - 2026-10-08
 
 Stand der main-Linie bis 0.21.0 (29.09.2026) übernommen.
