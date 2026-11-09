@@ -3,6 +3,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [0.21.1] - 2026-11-09
+
+### Fixed
+
+- Fehler behoben.
+
 ## [0.21.0] - 2026-09-29
 
 Inhaltlich gleich 0.20.7, geändert ist nur die Versionsnummer.
