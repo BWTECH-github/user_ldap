@@ -8,6 +8,33 @@ OCA = OCA || {};
 
 (function() {
 
+	/*
+	 * Mehrfachauswahl (vendor ui-multiselect: Objektklassen, Gruppen,
+	 * Anmeldeattribute). Der Baustein nimmt dem Knopf beim Schließen den Fokus
+	 * (close() löst blur aus), auch bei Escape und Tab im Menü - der Fokus fiel
+	 * auf <body>. Danach steht er wieder am Knopf. Der Knopf meldet, ob das
+	 * Menü offen ist, und nennt es (aria-expanded, aria-controls). Gebunden an
+	 * document, weil die Reiter ihre Auswahlen vor render() anlegen.
+	 */
+	$(document)
+		.on('multiselectcreate', '#ldap select', function() {
+			var $select = $(this);
+			var menuId = $select.attr('id') + '_menu';
+			$select.multiselect('widget').attr('id', menuId);
+			$select.multiselect('getButton').attr({'aria-expanded': 'false', 'aria-controls': menuId});
+		})
+		.on('multiselectopen', '#ldap select', function() {
+			$(this).multiselect('getButton').attr('aria-expanded', 'true');
+		})
+		.on('multiselectclose', '#ldap select', function() {
+			var $select = $(this);
+			var $button = $select.multiselect('getButton').attr('aria-expanded', 'false');
+			var aktiv = document.activeElement;
+			if (!aktiv || aktiv === document.body || $.contains($select.multiselect('widget')[0], aktiv)) {
+				$button.trigger('focus');
+			}
+		});
+
 	/**
 	 * @classdesc main view class. It takes care of tab-unrelated control
 	 * elements (status bar, control buttons) and does or requests configuration

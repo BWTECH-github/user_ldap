@@ -20,7 +20,7 @@
 						aria-label="<?php p($l->t('Server')); ?>">
 					<?php if (\count($_['serverConfigurationPrefixes']) === 0) {
 						?>
-						<option value="" selected><?php p($l->t('1. Server')); ?></option>');
+						<option value="" selected><?php p($l->t('1. Server')); ?></option>
 					<?php
 					} else {
 						$i = 1;

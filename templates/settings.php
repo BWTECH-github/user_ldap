@@ -321,8 +321,8 @@ if (!\function_exists('ldap_connect')) {
 				<h3><?php p($l->t('Username-LDAP User Mapping')); ?></h3>
 				<p><?php p($l->t('Usernames are used to store and assign (meta) data. In order to precisely identify and recognize users, each LDAP user will have an internal username. This requires a mapping from username to LDAP user. The created username is mapped to the UUID of the LDAP user. Additionally the DN is cached as well to reduce LDAP interaction, but it is not used for identification. If the DN changes, the changes will be found. The internal username is used all over. Clearing the mappings will have leftovers everywhere. Clearing the mappings is not configuration sensitive, it affects all LDAP configurations! Never clear the mappings in a production environment, only in a testing or experimental stage.')); ?></p>
 				<div class="tablerow">
-					<button type="button" id="ldap_action_clear_user_mappings" name="ldap_action_clear_user_mappings"><?php p($l->t('Clear Username-LDAP User Mapping')); ?></button>
-					<button type="button" id="ldap_action_clear_group_mappings" name="ldap_action_clear_group_mappings"><?php p($l->t('Clear Groupname-LDAP Group Mapping')); ?></button>
+					<button type="button" class="oco-btn-danger" id="ldap_action_clear_user_mappings" name="ldap_action_clear_user_mappings"><?php p($l->t('Clear Username-LDAP User Mapping')); ?></button>
+					<button type="button" class="oco-btn-danger" id="ldap_action_clear_group_mappings" name="ldap_action_clear_group_mappings"><?php p($l->t('Clear Groupname-LDAP Group Mapping')); ?></button>
 				</div>
 				<?php print_unescaped($_['settingControls']); ?>
 			</section>

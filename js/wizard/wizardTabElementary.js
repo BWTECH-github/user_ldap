@@ -280,7 +280,7 @@ OCA = OCA || {};
 					} else if(objectsFound > 1000) {
 						message = t('user_ldap', 'More than 1,000 directory entries available.');
 					} else {
-						message = t('user_ldap', objectsFound + ' entries available within the provided Base DN');
+						message = n('user_ldap', '%n entry available within the provided Base DN', '%n entries available within the provided Base DN', objectsFound);
 					}
 				} else {
 					message = view.overrideErrorMessage(payload.data.message);
@@ -351,7 +351,9 @@ OCA = OCA || {};
 							view.configModel.deleteConfig(view.getConfigID());
 						}
 					},
-					false
+					true,
+					t('user_ldap', 'Cancel'),
+					t('user_ldap', 'Delete configuration')
 				);
 			});
 

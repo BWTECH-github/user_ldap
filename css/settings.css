@@ -613,3 +613,15 @@ select[multiple=multiple] + button {
 #body-settings.oco-shell #ldap .tablerow:has(> input[type="checkbox"]) > .hint {
 	flex-basis: 100%;
 }
+
+/* Gefahrenknöpfe (Zuordnungen löschen): das jQuery-UI-Button-Widget
+   überschreibt sonst Fläche und Schrift des Kernbausteins. */
+#body-settings.oco-shell #ldap button.oco-btn-danger.ui-button {
+	background: var(--oco-surface);
+	border-color: var(--oco-danger-ink);
+	color: var(--oco-danger-ink);
+}
+
+#body-settings.oco-shell #ldap button.oco-btn-danger.ui-button:hover:not(:disabled) {
+	background: var(--oco-danger-bg);
+}

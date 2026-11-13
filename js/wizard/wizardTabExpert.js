@@ -110,14 +110,40 @@ OCA = OCA || {};
 		 * requests clearing of all user mappings
 		 */
 		onClearUserMappingsClick: function() {
-			this.configModel.requestWizard('ldap_action_clear_user_mappings', {ldap_clear_mapping: 'user'});
+			this._confirmClear('ldap_action_clear_user_mappings', 'user');
 		},
 
 		/**
 		 * requests clearing of all group mappings
 		 */
 		onClearGroupMappingsClick: function() {
-			this.configModel.requestWizard('ldap_action_clear_group_mappings', {ldap_clear_mapping: 'group'});
+			this._confirmClear('ldap_action_clear_group_mappings', 'group');
+		},
+
+		/**
+		 * asks before mappings are cleared (affects all LDAP configurations),
+		 * puts the focus back on the button afterwards
+		 *
+		 * @param {string} action wizard action
+		 * @param {string} type 'user' or 'group'
+		 * @private
+		 */
+		_confirmClear: function(action, type) {
+			var view = this;
+			var $button = $('#' + action);
+			OC.dialogs.confirm(
+				t('user_ldap', 'Clearing the mappings affects all LDAP configurations. Existing data stays assigned to the old internal names. Only do this in a test environment.'),
+				$button.text(),
+				function(doClear) {
+					if(doClear) {
+						view.configModel.requestWizard(action, {ldap_clear_mapping: type});
+					}
+					$button.trigger('focus');
+				},
+				true,
+				t('user_ldap', 'Cancel'),
+				t('user_ldap', 'Clear mappings')
+			);
 		},
 
 		/**

@@ -142,7 +142,7 @@ OCA = OCA || {};
 				var usersFound = parseInt(result.changes.ldap_test_loginname, 10);
 				if(usersFound < 1) {
 					var filter = $('<p>').text(result.changes.ldap_test_effective_filter).html();
-					message = t('user_ldap', 'User not found. Please check your login attributes and username. Effective filter (to copy-and-paste for command line validation): <br/>' + filter);
+					message = t('user_ldap', 'User not found. Please check your login attributes and username. Effective filter (to copy-and-paste for command line validation): <br/>{filter}', {filter: filter}, undefined, {escape: false});
 					console.warn(filter);
 					isHtml = true;
 				} else if(usersFound === 1) {

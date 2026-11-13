@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.1.2] - 2026-11-13
+
+### Geändert
+- Mehrfachauswahl im Assistenten: Fokus kehrt beim Schließen zum Knopf zurück, Zustand wird angesagt.
+- Zuordnungen löschen: Gefahrenknopf mit Rückfrage; Konfiguration löschen mit sprechenden Knöpfen.
+- Meldungen „Einträge verfügbar“ und „Benutzer nicht gefunden“ übersetzt; Anrede im deutschen Katalog vereinheitlicht.
+- Verirrten Text im Serverauswahlfeld entfernt.
+
 ## [1.1.1] - 2026-11-04
 
 ### Geändert
