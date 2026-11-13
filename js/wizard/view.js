@@ -84,11 +84,11 @@ OCA = OCA || {};
 			$('.ldap_action_test_connection').click(this.onTestButtonClick);
 			
 			$('#ldap_host').on('input', function () {				
-				$('.ldap_config_state_indicator_subline').html($('#ldap_host').val() + ':' + $('#ldap_port').val())
+				$('.ldap_config_state_indicator_subline').text($('#ldap_host').val() + ':' + $('#ldap_port').val())
 			})
 
 			$('#ldap_port').on('input', function () {
-				$('.ldap_config_state_indicator_subline').html($('#ldap_host').val() + ':' + $('#ldap_port').val())
+				$('.ldap_config_state_indicator_subline').text($('#ldap_host').val() + ':' + $('#ldap_port').val())
 			})
 		},
 
@@ -251,7 +251,7 @@ OCA = OCA || {};
 			view.basicStatusCheck(view);
 			view.functionalityCheck();
 			if (view['configModel']['configuration']['ldap_host'] !== '')
-				$('.ldap_config_state_indicator_subline').html(view['configModel']['configuration']['ldap_host'] + ':' + view['configModel']['configuration']['ldap_port'])
+				$('.ldap_config_state_indicator_subline').text(view['configModel']['configuration']['ldap_host'] + ':' + view['configModel']['configuration']['ldap_port'])
 			
 		},
 
@@ -263,21 +263,16 @@ OCA = OCA || {};
 		 * @returns {boolean}
 		 */
 		onTabChange: function(event, ui) {
-			//check if it is hash link; else treat as regular link
-			if( $(ui.newTab).find('a').attr('href').indexOf('#') != 0 ){ 
-				window.open($(ui.newTab).find('a').attr('href'), '__blank');
-				return false
-			}
-
 			if(this.saveProcesses > 0) {
 				return false;
 			}
 
-			var newTabID = ui.newTab[0].id;
+			// Schlüssel der Reiter-Ansichten ist die Panel-Kennung mit „#“.
+			var newTabID = '#' + $(ui.newTab).attr('aria-controls');
 			if(newTabID === '#ldapWizard1') {
 				newTabID = 'server';
 			}
-			var oldTabID = ui.oldTab[0].id;
+			var oldTabID = '#' + $(ui.oldTab).attr('aria-controls');
 			if(oldTabID === '#ldapWizard1') {
 				oldTabID = 'server';
 			}
@@ -403,6 +398,14 @@ OCA = OCA || {};
 			this.$settings.tabs({});
 			$('#ldapSettings button:not(.icon-default-style):not(.ui-multiselect)').button();
 			$('#ldapSettings').tabs({ beforeActivate: this.onTabChange });
+			// Der Reiter ist das li (role=tab, ein Tab-Halt); jQuery UI ordnet
+			// das Panel über aria-controls zu und braucht den Verweis nur beim
+			// Aufbau. Ohne href ist der Anker kein zweites Bedienelement im
+			// Reiter mehr (axe nested-interactive). Einen Anker ohne href hält
+			// jQuery UI für einen entfernten Reiter und lüde die Seite per Ajax
+			// ins Panel; alle Reiter hier sind lokal, also gibt es nichts zu laden.
+			this.$settings.find('.ui-tabs-nav > li > a').removeAttr('href tabindex');
+			this.$settings.data('ui-tabs').load = $.noop;
 			$('#ldapSettings :input').tooltip({placement: "right", container: "body", trigger: "hover"});
 
 			this.initControls();
@@ -419,38 +422,33 @@ OCA = OCA || {};
 		 */
 		_updateStatusIndicator: function(state) {
 			var $indicator = $('.ldap_config_state_indicator');
-			var $indicatorLight = $('.ldap_config_state_indicator_sign');
+			// Zustand als Statusmarke im Kartenkopf: Text trägt die Aussage,
+			// die Farbe der Marke folgt ihr (nie Farbe allein).
+			var $chip = $('#ldap .ldap-zustand')
+				.removeClass('oco-chip--neutral oco-chip--an ldap-zustand--fehler');
 
 			switch(state) {
 				case this.STATUS_UNTESTED:
 					$indicator.text(t('user_ldap',
 						'Testing configuration…'
 					));
-					$indicator.addClass('ldap_grey');
-					$indicatorLight.removeClass('error');
-					$indicatorLight.removeClass('success');
+					$chip.addClass('oco-chip--neutral');
 					break;
 				case this.STATUS_ERROR:
 					$indicator.text(t('user_ldap',
 						'Configuration incorrect'
 					));
-					$indicator.removeClass('ldap_grey');
-					$indicatorLight.addClass('error');
-					$indicatorLight.removeClass('success');
+					$chip.addClass('ldap-zustand--fehler');
 					break;
 				case this.STATUS_INCOMPLETE:
 					$indicator.text(t('user_ldap',
 						'Configuration incomplete'
 					));
-					$indicator.removeClass('ldap_grey');
-					$indicatorLight.removeClass('error');
-					$indicatorLight.removeClass('success');
+					$chip.addClass('oco-chip--neutral');
 					break;
 				case this.STATUS_SUCCESS:
 					$indicator.text(t('user_ldap', 'Configuration OK'));
-					$indicator.addClass('ldap_grey');
-					$indicatorLight.removeClass('error');
-					$indicatorLight.addClass('success');
+					$chip.addClass('oco-chip--an');
 					break;
 			}
 		},

@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.1.3] - 2026-11-13
+
+### Geändert
+- LDAP-Karte im Aufbau der übrigen Einstellungen: Titel, Zustand einmal als Statusmarke, Hilfe als Verweis daneben.
+- Reiter als Reiterleiste; Vorleser hören nur noch die Reiter, mit einem Tab-Halt und Pfeiltasten.
+- Hinweise unter Feldern als ruhiger Nebentext, Abschnittsköpfe als Gruppentitel; Host und Port auf dem Telefon in voller Breite.
+
 ## [1.1.2] - 2026-11-13
 
 ### Geändert

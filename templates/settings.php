@@ -50,30 +50,23 @@ style('user_ldap', 'settings');
 ?>
 
 <form id="ldap" class="section" action="#" method="post">
+	<h2 class="app-name"><?php p($l->t('LDAP')); ?></h2>
+	<div class="ldap-kopf">
+		<span class="oco-chip oco-chip--neutral ldap-zustand" role="status"><span class="ldap_config_state_indicator"></span> <span class="ldap_config_state_indicator_subline"></span></span>
+		<span class="ldap_saving hidden" role="status"><span class="working"><?php p($l->t('Saving'));?> …</span><span class="done"><?php p($l->t('Saved'));?></span></span>
+		<a class="ldap-hilfe" href="<?php p(link_to_docs('admin-ldap')); ?>" target="_blank" rel="noreferrer"><?php p($l->t('Help')); ?></a>
+	</div>
 	<div id="ldapSettings">
 		<div class="header">
-			<h2 class="app-name"><?php p($l->t('LDAP')); ?><div class="ldap_config_state_indicator_container"><span class="ldap_config_state_indicator"></span> <span class="ldap_config_state_indicator_sign"></span><div class="ldap_config_state_indicator_subline"></div></div></h2>
 			<ul>
 				<?php foreach ($_['toc'] as $id => $title) {
 					?>
-					<li id="<?php p($id); ?>"><a href="<?php p($id); ?>"><?php p($title); ?></a></li>
+					<li><a href="<?php p($id); ?>"><?php p($title); ?></a></li>
 					<?php
 				}
 ?>
 				<li class="warn"><a href="#ldapSettings-1"><?php p($l->t('Advanced')); ?></a></li>
 				<li class="warn"><a href="#ldapSettings-2"><?php p($l->t('Expert')); ?></a></li>
-				<li class="stateIndicator"><span class="ldap_config_state_indicator"></span> <span class="ldap_config_state_indicator_sign"></span><div class="ldap_config_state_indicator_subline"></div></li>
-				<li>
-					<a href="<?php p(link_to_docs('admin-ldap')); ?>" target="_blank" rel="noreferrer">
-						<img src="<?php print_unescaped(image_path('', 'actions/info.svg')); ?>" alt="" style="height:1.75ex" />
-						<span class="ldap_grey"><?php p($l->t('Help')); ?></span>
-					</a>
-				</li>
-				<li class="ldap_saving_wrapper">
-					<div class="ldap_saving hidden">
-						<span class="working"><?php p($l->t('Saving'));?> ...</span><span class="done"><?php p($l->t('Saved'));?></span>
-					</div>
-				</li>
 			</ul>
 		</div>
 		<?php if (OCP\App::isEnabled('user_webdavauth')) {

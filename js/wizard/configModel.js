@@ -627,7 +627,7 @@ OCA = OCA || {};
 				errorMessage: _.isUndefined(result['message']) ? '' : result['message']
 			};
 
-			$('.ldap_config_state_indicator_subline').html('')
+			$('.ldap_config_state_indicator_subline').text('')
 
 			model._broadcast('deleteConfiguration', payload);
 		}

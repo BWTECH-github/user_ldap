@@ -13,11 +13,16 @@
 	margin-bottom: 2rem;
 }
 
-/* Die Trennlinie unter den Abschnittsköpfen fluchtet mit dem Inhalt; der
-   frühere Vorlauf von -41 px zog sie bis an den Kartenrand. */
-#ldap section h3 {
-	border-bottom: 1px solid var(--oco-border-inner, #efefef);
-	padding-bottom: 5px;
+/* Abschnittsköpfe in „Fortgeschritten“ und „Experte“ als Gruppentitel
+   (MASSSTAB 2.3); die Kernregel greift nur bei direkten Kindern der Karte. */
+#body-settings.oco-shell #ldap fieldset h3 {
+	margin: var(--oco-space-6) 0 var(--oco-space-2);
+	padding: 0;
+	border: none;
+	font: 600 12px/1.35 var(--oco-font-ui);
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	color: var(--oco-text-secondary);
 }
 
 .table {
@@ -55,22 +60,24 @@
 	height: auto;
 }
 
-#ldap .tablerow .inline > div {
-	display: inline-block;
+/* Zwei Felder nebeneinander (Host/Port, Serverwahl/Knöpfe); reicht die Breite
+   nicht, steht jedes in voller Breite darunter. */
+#ldap .tablerow .inline {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0 var(--oco-space-4);
 }
 
 #ldap .tablerow .inline > div:first-of-type {
-	margin-right: 15px;
-}
-
-#ldap .tablerow .inline > div:first-of-type {
-	margin-right: 15px;
-	width: calc(66% - 8px) !important;
+	flex: 2 1 14rem;
+	min-width: 0;
 }
 
 #ldap .tablerow .inline > div:last-of-type {
-	width: calc(33% - 5px) !important;
+	flex: 1 1 8rem;
+	min-width: 0;
 }
+
 #ldap .tablerow .inline select {
 	width: 100% !important;
 }
@@ -79,29 +86,15 @@
 	float: left;
 }
 
-#ldap .tablerow .hint {
+/* Hinweise unter Feldern als Nebentext (MASSSTAB 1.2), ohne Symbol davor. */
+#body-settings.oco-shell #ldap .hint {
 	clear: both;
-	font-size: .8em;
-	position: relative;
-	padding-left: 1rem;
+	margin: var(--oco-space-1) 0 0;
+	font: 400 12px/1.45 var(--oco-font-text);
+	color: var(--oco-text-secondary);
 }
 
-#ldap .tablerow .hint:before {
-	background: url('/core/img/actions/info.svg');
-    background-size: contain;
-	background-position: 50% 100%;
-	background-repeat: no-repeat;
-	display: inline-block;
-	height: 1.3em;
-	width: 1.3em;
-	margin-right: 0rem;
-	content: ' ';
-	position: absolute;
-	margin-left: -1rem;
-	top: 3px;
-}
-
-#ldap .tablerow .hint img {
+#ldap .hint img {
 	height:1.75ex;
 }
 
@@ -124,8 +117,7 @@
 }
 
 
-/* Zustandsanzeige links, Knöpfe rechts; in schmalen Karten rutschen die Knöpfe
-   in die nächste Zeile. Ohne Umbruch schrumpfte „Fortsetzen“ in der Flex-Zeile
+/* Knöpfe rechts; in schmalen Karten rutschen sie in die nächste Zeile. Ohne Umbruch schrumpfte „Fortsetzen“ in der Flex-Zeile
    unter seine Textbreite und endete bei 320–390 px in „Fortse…“. */
 .ldapWizardControls {
 	display: flex;
@@ -138,11 +130,6 @@
 
 .ldapWizardControls > div {
 	margin-right: 1rem;
-}
-
-.ldapWizardControls > .stateIndicator {
-	flex: 1 1 12rem;
-	min-width: 0;
 }
 
 .ldapWizardControls > button {
@@ -361,38 +348,6 @@ select[multiple=multiple] + button {
 	cursor: wait;
 }
 
-#ldap .app-name .ldap_config_state_indicator_container {
-	display: inline-block;
-	margin-left: 2em;
-}
-
-@media all and (min-width: 768px) {
-	#ldap .app-name .ldap_config_state_indicator_container {
-		display: none;
-	}
-}
-
-
-.ldap_config_state_indicator_sign {
-	display: inline-block;
-	height: 16px;
-	width: 16px;
-	vertical-align: text-bottom;
-}
-.ldap_config_state_indicator_sign.success {
-	background: #2B9300;
-	border-radius: 8px;
-}
-.ldap_config_state_indicator_sign.error {
-	background: #ce3702;
-}
-
-.ldap_grey {
-	/* #6e6e6e ergab auf der Assistentenfläche 4,43:1 - knapp unter den
-	   4,5:1 aus WCAG 1.4.3. #5a5a5a liegt bei 6,5:1. */
-	color: #5a5a5a;
-}
-
 .outoftheway {
 	position: absolute;
 	left: -2000px;
@@ -406,73 +361,131 @@ select[multiple=multiple] + button {
 	color: #ffffff;
 }
 
-#ldap .header {
-	background: #fff;
-	top: 5.5em;
-	padding-top: 1.7em;
-	z-index: 1;
+/* Kartenkopf unter dem Titel: Zustand als Statusmarke, daneben die
+   Speichern-Meldung, rechts die Hilfe als Textverweis. */
+#body-settings.oco-shell #ldap .ldap-kopf {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--oco-space-2) var(--oco-space-4);
+	margin: 0 0 var(--oco-space-4);
 }
 
-@media all and (min-width: 768px) {
-	#ldap .header {
-		top: 3.5em;
-	}
+#body-settings.oco-shell #ldap .ldap-zustand--fehler {
+	background: var(--oco-danger-bg);
+	color: var(--oco-danger-ink);
 }
 
-#ldap .ui-tabs {
-	background: transparent;
-	border: none;
+#body-settings.oco-shell #ldap .ldap-kopf .ldap_saving {
+	font: 400 12px/1.4 var(--oco-font-text);
+	color: var(--oco-text-secondary);
 }
 
-/* Reiter in der Form der Redesign-Reiterleisten: kein grauer Kasten, keine
-   Unterstreichung wie ein Fließtextverweis (die kam vom Kern über jeden Anker
-   im Inhalt), der aktive Reiter mit Akzentlinie. Die Notform des Kerns für
-   den Fall ohne jQuery UI (#ldapSettings > .header > ul:not(.ui-tabs-nav))
-   sieht genauso aus. #body-settings vor den Verweisregeln: der Kern
-   unterstreicht jeden Verweis in einem Listeneintrag des Inhalts
-   (#body-settings.oco-shell #app-content li a, zwei Kennungen). */
-#ldap .ui-tabs .ui-tabs-nav {
-	padding: 0;
-	border: none;
-	border-bottom: 1px solid var(--oco-border-inner, #efefef);
-	border-radius: 0;
-	background: transparent;
+#ldap .ldap_saving .done,
+#ldap .ldap_saving.done .working {
+	display: none;
 }
 
-#ldap .ui-tabs .ui-tabs-nav li {
-	margin: 0 var(--oco-space-1, 4px) -1px 0;
-	border: none;
-	border-bottom: 2px solid transparent;
-	border-radius: var(--oco-radius-nav, 9px) var(--oco-radius-nav, 9px) 0 0;
-	background: transparent;
+#ldap .ldap_saving.done .done {
+	display: inline;
 }
 
-#ldap .ui-tabs .ui-tabs-nav li.ui-state-active {
-	border-bottom-color: var(--oco-teal-ink, #00806b);
-	background: transparent;
-}
-
-#body-settings #ldap .ui-tabs .ui-tabs-nav li a {
-	padding: 0.7em 1em;
-	color: var(--oco-text-secondary, #5b6675);
-	font: 600 13px/1.25 var(--oco-font-ui, inherit);
+#body-settings.oco-shell #ldap .ldap-kopf .ldap-hilfe {
+	margin-left: auto;
+	color: var(--oco-teal-ink);
+	font: 600 13px/1.4 var(--oco-font-ui);
 	text-decoration: none;
 }
 
-#body-settings #ldap .ui-tabs .ui-tabs-nav li a:hover {
-	color: var(--oco-text-heading, #041e42);
+#body-settings.oco-shell #ldap .ldap-kopf .ldap-hilfe:hover {
+	text-decoration: underline;
 }
 
-#body-settings #ldap .ui-tabs .ui-tabs-nav li.ui-state-active a {
-	color: var(--oco-text-heading, #041e42);
+#ldap .ui-tabs {
+	padding: 0;
+	background: transparent;
+	border: none;
 }
 
-/* Warnsymbol als Teil der Zeile statt absolut über den Text gelegt – mit dem
-   schmaleren Polster der Reiter lag es sonst auf dem ersten Buchstaben. */
-#body-settings #ldap .ui-tabs .ui-tabs-nav li.warn a {
+/* Reiter nach MASSSTAB 3.3 (Bau wie die Reiterleiste im Detailbereich):
+   Spur als Pille, gewählter Reiter gefüllt, fett und unterstrichen. Passen
+   nicht alle Reiter in die Karte, brechen sie in eine zweite Reihe um; die
+   Spur ist dann ein Rechteck mit Kartenradius. Der Reiter ist das li
+   (role=tab), der Anker darin nur Beschriftung (view.js nimmt ihm href). */
+#body-settings.oco-shell #ldap .ui-tabs .ui-tabs-nav {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	box-sizing: border-box;
+	width: fit-content;
+	max-width: 100%;
+	margin: 0 0 var(--oco-space-4);
+	padding: 4px;
+	border: 1px solid var(--oco-teal-border);
+	border-radius: var(--oco-radius-pill);
+	background: var(--oco-teal-surface);
+}
+
+#body-settings.oco-shell #ldap .ui-tabs .ui-tabs-nav::after {
+	content: none;
+}
+
+#body-settings.oco-shell #ldap .ui-tabs .ui-tabs-nav li {
+	display: flex;
+	float: none;
+	top: 0;
+	margin: 0;
+	padding: 0;
+	border: 1px solid transparent;
+	border-radius: var(--oco-radius-pill);
+	background: none;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+#body-settings.oco-shell #ldap .ui-tabs .ui-tabs-nav li:hover {
+	background: var(--oco-teal-highlight);
+	border-color: var(--oco-teal-ink);
+}
+
+#body-settings.oco-shell #ldap .ui-tabs .ui-tabs-nav li.ui-state-active {
+	background: var(--oco-teal);
+	border-color: var(--oco-teal-ink);
+}
+
+#body-settings.oco-shell #ldap .ui-tabs .ui-tabs-nav li.ui-state-disabled {
+	cursor: default;
+}
+
+#body-settings.oco-shell #ldap .ui-tabs .ui-tabs-nav li.ui-state-disabled:hover {
+	background: none;
+	border-color: transparent;
+}
+
+#body-settings.oco-shell #ldap .ui-tabs .ui-tabs-nav li a {
 	display: inline-flex;
+	float: none;
 	align-items: center;
-	gap: .4em;
+	gap: 6px;
+	box-sizing: border-box;
+	min-height: 32px;
+	padding: 4px 12px;
+	color: var(--oco-text-secondary);
+	font: 500 12px/1.25 var(--oco-font-ui);
+	text-decoration: none;
+	cursor: inherit;
+}
+
+#body-settings.oco-shell #ldap .ui-tabs .ui-tabs-nav li:hover a {
+	color: var(--oco-teal-deep);
+}
+
+#body-settings.oco-shell #ldap .ui-tabs .ui-tabs-nav li.ui-state-active a {
+	color: var(--oco-ink);
+	font-weight: 600;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	text-decoration-thickness: 2px;
 }
 
 #ldap .ui-tabs .ui-tabs-nav li.warn a::before {
@@ -482,56 +495,17 @@ select[multiple=multiple] + button {
 	width: 16px;
 }
 
-#ldap .ui-tabs .ui-tabs-nav li.stateIndicator,
-#ldap .ui-tabs .ui-tabs-nav li.ldap_saving_wrapper {
-	color: #333333;
-	border: none;
-	background: transparent;
-	padding: 0.2rem 1.3rem;
-	display: none;
-}
-
-#ldap .ui-tabs .ui-tabs-nav li.ldap_saving_wrapper {
-	padding: 0.5rem 1.3rem;
-	display: block; 
-}
-
-#ldap .ui-tabs .ui-tabs-nav li.ldap_saving_wrapper .ldap_saving {
-	margin-right: 15px;
-	color: #B35900;
-	font-weight: bold;
-}
-
-#ldap .ui-tabs .ui-tabs-nav li.ldap_saving_wrapper .ldap_saving .done {
-	display: none;
-	color: #128c12;
-}
-
-#ldap .ui-tabs .ui-tabs-nav li.ldap_saving_wrapper .ldap_saving.done img {
-	display: none;
-}
-
-#ldap .ui-tabs .ui-tabs-nav li.ldap_saving_wrapper .ldap_saving.done .done {
-	display: inline;
-}
-
-#ldap .ui-tabs .ui-tabs-nav li.ldap_saving_wrapper .ldap_saving.done .working {
-	display: none;
-}
-
-#ldap .ldap_config_state_indicator_subline {
-	font-weight: 100;
-	font-size: 75%;
-}
-
-@media all and (min-width: 768px) {
-	#ldap .ui-tabs .ui-tabs-nav li.stateIndicator {
-		display: block;
+@media (max-width: 767px) {
+	#body-settings.oco-shell #ldap .ui-tabs .ui-tabs-nav {
+		border-radius: var(--oco-radius-card);
 	}
 }
 
-.ui-tabs .ui-tabs-panel {
-	margin-top: 1rem;
+/* Panels fluchten mit Kartenkopf und Reiterleiste (jQuery UI rückt sie
+   sonst um 1em/1.4em ein). */
+#body-settings.oco-shell #ldap .ui-tabs .ui-tabs-panel {
+	margin: 0;
+	padding: 0;
 }
 
 /* Die Assistentenknöpfe sind jQuery-UI-Knöpfe; die Kernregel
