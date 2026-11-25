@@ -12,12 +12,12 @@
 <fieldset id="ldapWizard1">
 	<section>
 		<div class="tablerow">
+			<!-- Sichtbare Beschriftung über der ganzen Zeile, damit Auswahl und Knöpfe
+				 auf einer Linie bleiben. -->
+			<label for="ldap_serverconfig_chooser"><?php p($l->t('Server')); ?></label>
 			<div class="inline">
 				<div>
-					<!-- Das Auswahlfeld hat keine sichtbare Beschriftung; der Name kommt aus der
-						 bereits vorhandenen Zeichenkette der Registerkarte "Server". -->
-					<select id="ldap_serverconfig_chooser" name="ldap_serverconfig_chooser"
-						aria-label="<?php p($l->t('Server')); ?>">
+					<select id="ldap_serverconfig_chooser" name="ldap_serverconfig_chooser">
 					<?php if (\count($_['serverConfigurationPrefixes']) === 0) {
 						?>
 						<option value="" selected><?php p($l->t('1. Server')); ?></option>
