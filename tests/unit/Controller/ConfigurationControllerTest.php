@@ -198,8 +198,11 @@ class ConfigurationControllerTest extends TestCase {
 		], $data, true);
 	}
 
-	public function testTest() {
-		// use valid looking config to pass critical validation
+	/**
+	 * Konfiguration t01, die die Prüfung besteht, und ein Server, der die
+	 * Verbindung annimmt
+	 */
+	private function reachableServerWithValidLookingConfig() {
 		$this->config->expects($this->any())
 			->method('getAppValue')
 			->will($this->returnCallback(function ($app, $key, $default) {
@@ -242,6 +245,10 @@ class ConfigurationControllerTest extends TestCase {
 		$this->ldap->expects($this->any())
 			->method('setOption')
 			->will($this->returnValue(true));
+	}
+
+	public function testTest() {
+		$this->reachableServerWithValidLookingConfig();
 
 		$this->ldap->expects($this->once())
 			->method('bind')
@@ -256,6 +263,19 @@ class ConfigurationControllerTest extends TestCase {
 		$this->assertInstanceOf(DataResponse::class, $result);
 		$data = $result->getData();
 		$this->assertArrayIsSubsetOf(['status' => 'success'], $data, true);
+	}
+
+	public function testTestNamesTheRejectedBind() {
+		$this->reachableServerWithValidLookingConfig();
+		$this->l10n->method('t')->willReturnArgument(0);
+		$this->ldap->method('bind')->willReturn(false);
+
+		$result = $this->controller->test('t01');
+
+		$this->assertSame([
+			'status' => 'error',
+			'message' => 'The configuration is valid, but the Bind failed. Please check the server settings and credentials.'
+		], $result->getData());
 	}
 
 	//public function testDelete() {

@@ -3,6 +3,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.1.5] - 2026-11-26
+
+### Behoben
+- Verbindungstest: Lehnt der Server die Anmeldung ab oder ist er nicht erreichbar, nennt die Karte das jetzt („Die Konfiguration ist gültig, aber der LDAP-Bind ist fehlgeschlagen …“). Bisher blieb die Meldung leer, `occ ldap:test-config` brach mit einer Ausnahme ohne Text ab.
+- Mehrere LDAP-Server: Das Protokoll bekommt nicht mehr bei jeder Anfrage die Warnung „No cached ldap result found“.
+
 ## [1.1.4] - 2026-11-25
 
 ### Geändert

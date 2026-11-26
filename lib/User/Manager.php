@@ -292,8 +292,9 @@ class Manager {
 			return null;
 		}
 
-		// should have been cached during login or while iterating over multiple users, eg during sync
-		$this->logger->warning('No cached ldap result found for '. $uid, ['app' => self::class]);
+		// Kein Treffer in dieser Konfiguration. Bei mehreren Servern fragt der Kern
+		// jeden nach jedem Benutzer: der Normalfall, keine Warnung je Anfrage.
+		$this->logger->debug('No cached ldap result found for '. $uid, ['app' => self::class]);
 		return null;
 	}
 

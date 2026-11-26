@@ -25,6 +25,7 @@
 namespace OCA\User_LDAP\Command;
 
 use OCA\User_LDAP\Configuration;
+use OCA\User_LDAP\Exceptions\BindFailedException;
 use OCA\User_LDAP\LDAP;
 use OCP\IConfig;
 use Symfony\Component\Console\Command\Command;
@@ -88,6 +89,7 @@ class TestConfig extends Command {
 			$output->writeln('The configuration is invalid. Please have a look at the logs for further details.');
 		} elseif ($result === 2) {
 			$output->writeln('The configuration is valid, but the Bind failed. Please check the server settings and credentials.');
+			return 1;
 		} else {
 			$output->writeln('Your LDAP server was kidnapped by aliens.');
 		}
@@ -111,8 +113,12 @@ class TestConfig extends Command {
 		])) {
 			return 1;
 		}
-		if ($connection->bind()) {
-			return 0;
+		try {
+			if ($connection->bind()) {
+				return 0;
+			}
+		} catch (BindFailedException $e) {
+			// abgelehnte Anmeldung oder Server nicht erreichbar: bind() meldet beides ohne Text
 		}
 		return 2;
 	}

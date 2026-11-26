@@ -23,6 +23,7 @@ namespace OCA\User_LDAP\Controller;
 
 use OCA\User_LDAP\Configuration;
 use OCA\User_LDAP\Connection;
+use OCA\User_LDAP\Exceptions\BindFailedException;
 use OCA\User_LDAP\Helper;
 use OCA\User_LDAP\LDAP;
 use OCP\AppFramework\Controller;
@@ -158,7 +159,13 @@ class ConfigurationController extends Controller {
 				 * problem with that other than the extra connection.
 				 */
 				$this->session->close();
-				if ($connection->bind()) {
+				try {
+					$bound = $connection->bind();
+				} catch (BindFailedException $e) {
+					// abgelehnte Anmeldung oder Server nicht erreichbar: bind() meldet beides ohne Text
+					$bound = false;
+				}
+				if ($bound) {
 					/*
 					 * This shiny if block is an ugly hack to find out whether anonymous
 					 * bind is possible on AD or not. Because AD happily and constantly

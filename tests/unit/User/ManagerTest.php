@@ -74,6 +74,7 @@ class ManagerTest extends \Test\TestCase {
 		$filesystem = $this->createMock(FilesystemHelper::class);
 		/** @var ILogger|\PHPUnit\Framework\MockObject\MockObject $logger */
 		$logger     = $this->createMock(ILogger::class);
+		$this->logger = $logger;
 		/** @var IAvatarManager|\PHPUnit\Framework\MockObject\MockObject $avatarManager */
 		$avatarManager = $this->createMock(IAvatarManager::class);
 		/** @var IDBConnection|\PHPUnit\Framework\MockObject\MockObject $dbConn */
@@ -472,6 +473,15 @@ class ManagerTest extends \Test\TestCase {
 			->willReturn(false);
 
 		$this->assertNull($this->manager->getCachedEntry('usertest'));
+	}
+
+	public function testUserOfAnotherServerWritesNoWarning() {
+		// Bei mehreren Servern fragt der Kern jeden nach jedem Benutzer:
+		// Dass dieser Server ihn nicht kennt, ist der Normalfall.
+		$this->access->method('username2dn')->willReturn(false);
+		$this->logger->expects($this->never())->method('warning');
+
+		$this->manager->getCachedEntry('usertest');
 	}
 
 	public function testGetCachedEntryMissingEntry() {
