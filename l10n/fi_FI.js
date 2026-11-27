@@ -76,6 +76,10 @@ OC.L10N.register(
     "Email Field" : "Sähköpostikenttä",
     "User Home Folder Naming Rule" : "Käyttäjän kotihakemiston nimeämissääntö",
     "Leave empty for user name (default). Otherwise, specify an LDAP/AD attribute." : "Jätä tyhjäksi käyttäjänimi (oletusasetus). Muutoin anna LDAP/AD-atribuutti.",
-    "Internal Username" : "Sisäinen käyttäjänimi"
+    "Internal Username" : "Sisäinen käyttäjänimi",
+    "_%n entry available within the provided Base DN_::_%n entries available within the provided Base DN_" : ["%n merkintä saatavilla annetussa Base DN:ssä","%n merkintää saatavilla annetussa Base DN:ssä"],
+    "Select group(s)" : "Valitse ryhmät",
+    "Deselect group(s)" : "Poista ryhmien valinta",
+    "Attempts to receive a DN for the given loginname and the current login filter" : "Yrittää hakea DN:n annetulle kirjautumisnimelle ja nykyiselle kirjautumissuodattimelle"
 },
 "nplurals=2; plural=(n != 1);");

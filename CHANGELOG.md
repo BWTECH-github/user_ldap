@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
+## [1.1.6] - 2026-11-27
+
+### Behoben
+- Reiter „Gruppen“: Die Knöpfe zum Übernehmen und Entfernen von Gruppen heißen für Vorleser jetzt auch auf Deutsch „Gruppe(n) auswählen“ und „Gruppe(n) abwählen“.
+- Reiter „Server“: Die Meldung „%n Einträge im angegebenen Base DN verfügbar“ erschien englisch, weil der deutsche Eintrag unter dem falschen Schlüssel stand.
+- Reiter „Loginattribute“: Der Hinweis unter „Loginnamen testen“ stand fest auf Englisch im Template und ist jetzt übersetzt.
+- Deutscher Katalog (Du): sechs Hilfetexte in den Reitern „Benutzer“, „Fortgeschritten“ und „Experte“ sprachen noch mit „Sie“.
+
 ## [1.1.5] - 2026-11-26
 
 ### Behoben

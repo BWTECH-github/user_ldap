@@ -15,7 +15,6 @@ OC.L10N.register(
     "{nthServer}. Server" : "{nthServer}. - Server",
     "No object found in the given Base DN. Please revise." : "Keine Objekte in der angegebenen Base DN gefunden, bitte überprüfen.",
     "More than 1,000 directory entries available." : "Es sind mehr als 1.000 Verzeichniseinträge verfügbar.",
-    "%n entry available within the provided Base DN" : ["%n Eintrag im angegebenen Base DN verfügbar","%n Einträge im angegebenen Base DN verfügbar"],
     "An error occurred. Please check the Base DN, as well as connection settings and credentials." : "Es ist ein Fehler aufgetreten. Bitte überprüfen Sie die Base DN wie auch die Verbindungseinstellungen und Anmeldeinformationen.",
     "Do you really want to delete the current Server Configuration?" : "Soll die aktuelle Serverkonfiguration wirklich gelöscht werden?",
     "Confirm Deletion" : "Löschen bestätigen",
@@ -176,6 +175,10 @@ OC.L10N.register(
     "Cancel" : "Abbrechen",
     "Delete configuration" : "Konfiguration löschen",
     "Clear mappings" : "Zuordnungen löschen",
-    "Clearing the mappings affects all LDAP configurations. Existing data stays assigned to the old internal names. Only do this in a test environment." : "Das Löschen der Zuordnungen betrifft alle LDAP-Konfigurationen. Vorhandene Daten bleiben den alten internen Namen zugeordnet. Führen Sie das nur in einer Testumgebung aus."
+    "Clearing the mappings affects all LDAP configurations. Existing data stays assigned to the old internal names. Only do this in a test environment." : "Das Löschen der Zuordnungen betrifft alle LDAP-Konfigurationen. Vorhandene Daten bleiben den alten internen Namen zugeordnet. Führen Sie das nur in einer Testumgebung aus.",
+    "_%n entry available within the provided Base DN_::_%n entries available within the provided Base DN_" : ["%n Eintrag im angegebenen Base DN verfügbar","%n Einträge im angegebenen Base DN verfügbar"],
+    "Select group(s)" : "Gruppe(n) auswählen",
+    "Deselect group(s)" : "Gruppe(n) abwählen",
+    "Attempts to receive a DN for the given loginname and the current login filter" : "Versucht, für den angegebenen Loginnamen und den aktuellen Loginfilter einen DN zu ermitteln"
 },
 "nplurals=2; plural=(n != 1);");

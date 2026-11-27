@@ -138,6 +138,10 @@
     "UUID Attribute for Groups:" : "UUID-attribut för grupper:",
     "Username-LDAP User Mapping" : "Användarnamn-LDAP användarmappning",
     "Clear Username-LDAP User Mapping" : "Rensa användarnamn-LDAP användarmappning",
-    "Clear Groupname-LDAP Group Mapping" : "Rensa gruppnamn-LDAP gruppmappning"
+    "Clear Groupname-LDAP Group Mapping" : "Rensa gruppnamn-LDAP gruppmappning",
+    "_%n entry available within the provided Base DN_::_%n entries available within the provided Base DN_" : ["%n post tillgänglig i angiven Base DN","%n poster tillgängliga i angiven Base DN"],
+    "Select group(s)" : "Välj grupper",
+    "Deselect group(s)" : "Avmarkera grupper",
+    "Attempts to receive a DN for the given loginname and the current login filter" : "Försöker hämta ett DN för det angivna inloggningsnamnet och det aktuella inloggningsfiltret"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -44,7 +44,7 @@
 			<input type="text" id="ldap_test_loginname" name="ldap_test_loginname" class="ldapVerifyInput" />
 			
 			<div class="hint">
-				Attempts to receive a DN for the given loginname and the current login filter
+				<?php p($l->t('Attempts to receive a DN for the given loginname and the current login filter'));?>
 			</div>
 			<button class="ldapVerifyLoginName" name="ldapTestLoginSettings" disabled="disabled"><?php p($l->t('Verify settings'));?></button>
 		</div>

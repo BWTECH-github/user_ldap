@@ -59,6 +59,10 @@ OC.L10N.register(
     "Email Field" : "Email-Feld",
     "Internal Username" : "Interner Username",
     "UUID Attribute for Users:" : "UUID Attribut für User:",
-    "UUID Attribute for Groups:" : "UUID Attribut für Gruppen:"
+    "UUID Attribute for Groups:" : "UUID Attribut für Gruppen:",
+    "_%n entry available within the provided Base DN_::_%n entries available within the provided Base DN_" : ["%n Eintrag im angegebenen Base DN verfügbar","%n Einträge im angegebenen Base DN verfügbar"],
+    "Select group(s)" : "Gruppe(n) auswählen",
+    "Deselect group(s)" : "Gruppe(n) abwählen",
+    "Attempts to receive a DN for the given loginname and the current login filter" : "Versucht, für den angegebenen Loginnamen und den aktuellen Loginfilter einen DN zu ermitteln"
 },
 "nplurals=2; plural=(n != 1);");
